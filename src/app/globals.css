@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+
+  --chess-board-rgb: 128, 128, 128;
+  --chess-board-rgb-alt: 255, 255, 255;
+
+  --chess-piece-rgb: 0, 0, 0;
+  --chess-piece-rgb-alt: 255, 255, 255;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
+}
+
+.chessBoard{
+  border: 2px solid rgba(var(--chess-board-rgb), 0.5);
+}
+
+.chessPlate-dark{
+  background-color: rgba(var(--chess-board-rgb-alt));
+  color: rgba(var(--chess-piece-rgb), 0.5);
+}
+.chessPlate{
+  background-color: rgba(var(--chess-board-rgb));
+  color: rgba(var(--chess-piece-rgb-alt), 0.5);
+}
+
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* width */
+::-webkit-scrollbar {
+  width: 2px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #888;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.hover:hover .gray{
+  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.4);
+  background-color: #222;
+  transition: 0.3s;
+}
+
+.hover:hover .red{
+  box-shadow: 0 4px 8px 0 rgba(255,0,0,0.4);
+  background-color: #b00;
+  transition: 0.3s;
+}
