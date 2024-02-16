@@ -1,14 +1,14 @@
 "use client";
 import { Context, createContext } from "react";
-import Board, { ChessPiece } from "./piece.service";
+import Board from "./chess.service";
+// import ChessAi from "./chessAi.service";
+import { Chess } from "chess.js";
 
 export interface BoardContext {
   board: Board;
-  setBoard: (board: Board) => void;
 }
 
 export const BoardContext = createContext<BoardContext>({
     board: new Board(),
-    setBoard: () => {}  
 });
 
