@@ -6,9 +6,11 @@ import { Chess } from "chess.js";
 
 export interface BoardContext {
   board: Board;
+  stockfish: Worker;
 }
 
 export const BoardContext = createContext<BoardContext>({
     board: new Board(),
+    stockfish: new Worker('stockfish.js')
 });
 

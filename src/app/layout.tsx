@@ -17,10 +17,11 @@ export default function RootLayout({
 
 
   const board = new Board();
+  const stockfish = new Worker('stockfish.js');
 
   return (
     <html lang="en">
-      <BoardContext.Provider value={{ board }}>
+      <BoardContext.Provider value={{ board, stockfish }}>
         <body className={inter.className}>{children}</body>
       </BoardContext.Provider>
     </html>

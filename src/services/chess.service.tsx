@@ -1,5 +1,5 @@
 import PieceIcon from "@/assets/pieces/icon";
-import { Chess, Square } from "chess.js";
+import { Chess, Square, WHITE } from "chess.js";
 
 
 export default class Board {
@@ -46,13 +46,13 @@ export default class Board {
                 return { check: move.substring(2, 4), move: move };
             }
             if (move == "O-O") {
-                if(this.turn == "w"){
+                if (this.turn == "w") {
                     return { check: "g1", move: move };
                 }
                 return { check: "g8", move: move };
             }
             if (move == "O-O-O") {
-                if(this.turn == "w"){
+                if (this.turn == "w") {
                     return { check: "c1", move: move };
                 }
                 return { check: "c8", move: move };
@@ -74,7 +74,7 @@ export default class Board {
             for (let y = 0; y < board[x].length; y++) {
                 const element = board[x][y];
                 if (element != null) {
-                    this.chess_board[x][y] = new ChessPiece(this.getPieceByType(element.type), element.color, element.square);
+                    this.chess_board[x][y] = new ChessPiece(element.color == "b" ? this.getPieceByType(element.type) : this.getPieceByType(element.type).toUpperCase(), element.color, element.square);
                 } else {
                     this.chess_board[x][y] = null;
                 }
@@ -82,15 +82,32 @@ export default class Board {
         }
     }
 
-    move(move: string) {
+    move(from: Square, to: Square) {
         try {
-            this.chess.move(move);
+            this.chess.move(from + to);
             this.setBoard(this.chess.board());
-
             return this.checking();
         } catch (error) {
+            console.log(error);
             return false;
         }
+    }
+
+
+    botMove(moves: string[]) {
+        let moved = true;
+        let index = 0;
+        console.log(moves);
+        do {
+            try {
+                this.chess.move(moves[index]);
+                this.setBoard(this.chess.board());
+                moved = true;
+            } catch (error) {
+                index++;
+            }
+        } while (!moved);
+        return this.checking();
     }
 
     promotion(move: string, piece: string) {
@@ -139,6 +156,33 @@ export default class Board {
         }
     }
 
+    get prevMoves() {
+        return this.chess.history({ verbose: true });
+    }
+
+    get missingPieces() {
+        // let missing: any = { "p": 8, "n": 2, "b": 2, "r": 2, "q": 1, "k": 1, "P": 8, "N": 2, "B": 2, "R": 2, "Q": 1, "K": 1};
+        // let missing: any = [{type: "p", number: 8}, {type: "n", number: 2}, {type: "b", number: 2}, {type: "r", number: 2}, {type: "q", number: 1}, {type: "k", number: 1}, {type: "P", number: 8}, {type: "N", number: 2}, {type: "B", number: 2}, {type: "R", number: 2}, {type: "Q", number: 1}, {type: "K", number: 1}]
+        let missing: any = [{ type: "p", number: "########" }, { type: "n", number: "##" }, { type: "b", number: "##" }, { type: "r", number: "##" }, { type: "q", number: "#" }, { type: "k", number: "#" }, { type: "P", number: "########" }, { type: "N", number: "##" }, { type: "B", number: "##" }, { type: "R", number: "##" }, { type: "Q", number: "#" }, { type: "K", number: "#" }]
+        for (const x of this.chess_board) {
+            for (const pieces of x) {
+                if (pieces != null) {
+                    missing = missing.map((value: { type: string, number: string }) => {
+                        if (value.type == pieces.type) {
+                            value.number = value.number.slice(0, -1);
+                        }
+                        return value;
+                    });
+                }
+            }
+        }
+
+        return missing.map((value: { type: string, number: string }) => {
+            return { type: value.type, number: value.number, kind: this.getPieceByType(value.type.toLocaleLowerCase()), color: value.type == value.type.toUpperCase() ? "w" : "b" };
+        });
+
+    }
+
 }
 
 export class ChessPiece {
@@ -149,7 +193,11 @@ export class ChessPiece {
 
     constructor(kind: string, color: "b" | "w", square: Square) {
         this.kind = kind;
-        this.type = kind[0];
+        if (kind.toUpperCase() == "KNIGHT") {
+            this.type = color == "b" ? "n" : "N";
+        } else {
+            this.type = kind[0];
+        }
         this.color = color;
         this.square = square;
     }

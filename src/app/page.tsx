@@ -9,7 +9,7 @@ import { ChessPiece } from "@/services/chess.service";
 
 export default function Home() {
 
-  const { board } = useContext(BoardContext);
+  const { board, stockfish } = useContext(BoardContext);
 
 
 
@@ -17,12 +17,39 @@ export default function Home() {
 
   const [selectedStart, setSelectedStart] = useState<Square | null>(null);
   const [prevMoves, setPrevMoves] = useState([] as { x: number, y: number }[]);
-  const [availableMoves, setAvailableMoves] = useState<Array<{check: string, move: string}>>([]);
+  const [availableMoves, setAvailableMoves] = useState<Array<{ check: string, move: string }>>([]);
 
   const [promote, setPromote] = useState<{ square: Square, color: "w" | "b" | undefined } | null>(null);
 
   const [check, setCheck] = useState<"w" | "b" | undefined>(undefined);
 
+  const otherMoves = useRef([] as string[]);
+
+  useEffect(() => {
+    stockfish.postMessage("uci");
+    stockfish.postMessage("ucinewgame");
+    stockfish.postMessage("isready");
+
+    stockfish.onmessage = (event) => {
+      if (event.data.includes("info depth 10 seldepth")) {
+        otherMoves.current = (event.data.split(" pv ")[1].split(" "));
+      }
+      if (event.data.includes("bestmove")) {
+        const res = board.botMove([event.data.split(" ")[1], ...otherMoves.current])
+        if (res) {
+          setCheck(undefined);
+          if (res == "check") {
+            setCheck("w");
+          }
+          setReload(reload + 1);
+          setAvailableMoves([]);
+          setSelectedStart(null);
+        } else {
+        }
+
+      }
+    };
+  }, []);
 
 
   function startSelection(piece: ChessPiece | null, newPiece?: boolean) {
@@ -34,30 +61,33 @@ export default function Home() {
     }
   }
 
-  async function move(move: {check: string, move: string, promotion?: boolean}, square: Square | undefined) {
+  async function move(move: { check: string, move: string, promotion?: boolean }, square: Square | undefined) {
     if (selectedStart == null || square == undefined) return;
     if (selectedStart == square) return;
-    if (move == undefined) {startSelection(board.getPieceByLabel(square), true); return;};
-    if (move.promotion) { setPromote({square: square, color: board.getPieceByLabel(selectedStart)?.color}); return;}
+    if (move == undefined) { startSelection(board.getPieceByLabel(square), true); return; };
+    if (move.promotion) { setPromote({ square: square, color: board.getPieceByLabel(selectedStart)?.color }); return; }
     if (board.getPieceByLabel(square) != null && board.getPieceByLabel(square)?.color == board.getPieceByLabel(selectedStart)?.color) { startSelection(board.getPieceByLabel(square), true); return; };
-    const res = board.move(move.move);
-    if(res){
+    const res = board.move(selectedStart, square);
+    if (res) {
       setCheck(undefined);
-      if(res == "check"){
+      if (res == "check") {
         setCheck(board.turn);
       }
       setReload(reload + 1);
       setAvailableMoves([]);
       setSelectedStart(null);
-    }else{
+      stockfish.postMessage("position fen " + board.chess.fen());
+      stockfish.postMessage("go depth 10");
+    } else {
+      console.log("Invalid move", move.move);
       startSelection(board.getPieceByLabel(square), true);
     }
   }
 
-  function promotion(square: Square, prom: "Q" | "R" | "N" | "B"){
+  function promotion(square: Square, prom: "Q" | "R" | "N" | "B") {
     console.log(square, prom);
     const res = board.promotion(square, prom);
-    if(res){
+    if (res) {
       setPromote(null);
       setReload(reload + 1);
       setAvailableMoves([]);
@@ -68,23 +98,26 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-24">
       <div className="flex flex-col justify-center">
-        <div className="grid grid-cols-8"><div className="w-24"></div><div className="w-24"></div><div className="w-24"></div><div className="w-24"></div><div className="w-24"></div><div className="w-24"></div><div className="w-24"></div><div className="w-24"></div></div>
-        {/* <div className="flex">
+        {/* <div className="grid grid-cols-8"><div className="w-24"></div><div className="w-24"></div><div className="w-24"></div><div className="w-24"></div><div className="w-24"></div><div className="w-24"></div><div className="w-24"></div><div className="w-24"></div></div> */}
+        <div className="flex">
           {
-            board.missingPieces.map((piece, index) => {
+            Object.keys(board.missingPieces).map((piece, index) => {
               return (
-                <div key={index}>
+                <div key={index} className="flex">
                   {
-                    piece.color == "w" ?
-                      <div className="w-6 h-6 relative" key={index}>
-                        <Image src={`/pieces/${piece.kind}-${piece.color}.svg`} alt={piece.kind} width={100} height={100} />
-                      </div> : <></>
+                    board.missingPieces[piece].number.length > 0 &&
+                    board.missingPieces[piece].number.split("").map((value: string, index: number) => {
+                      return <div className="w-6 h-6 relative" key={index}>
+                        <Image src={`/pieces/${board.missingPieces[piece].kind}-${board.missingPieces[piece].color}.svg`} alt={board.missingPieces[piece].kind} width={100} height={100} />
+                      </div>
+                    })
                   }
                 </div>
               )
             })
           }
-        </div> */}
+        </div>
+
       </div>
       <div className="chessBoard border-2 border-black select-none" key={reload}>
         {
@@ -121,7 +154,7 @@ export default function Home() {
                     }
 
                     {
-                      x?.kind == "king" && x.color == check &&
+                      x?.kind.toLowerCase() == "king" && x.color == check &&
                       <div className="absolute top-0 left-0 w-24 h-24 opacity-20 flex justify-center items-center bg-red-700">
                       </div>
                     }
@@ -147,11 +180,11 @@ export default function Home() {
 export function Promotion({ x, y, prom, color }: { x: number, y: number, prom: (prom: "Q" | "R" | "N" | "B") => void, color: "w" | "b" }) {
   return (
     <main className={"absolute top-0 left-0 w-24 h-24 z-50 overflow-y-scroll overflow-x-hidden border-2 chessPlate" + ((y + x) % 2 == 0 ? "-dark" : "")}>
-      <div className="flex flex-col justify-center items-center">
-        <PieceIcon name="queen" color={color} onClick={() => { prom("Q") }} />
-        <PieceIcon name="rook" color={color} onClick={() => { prom("R") }} />
-        <PieceIcon name="knight" color={color} onClick={() => { prom("N") }} />
-        <PieceIcon name="bishop" color={color} onClick={() => { prom("B") }} />
+      <div className="flex flex-col justify-center items-center ">
+        <PieceIcon name="queen" className="cursor-pointer" color={color} onClick={() => { prom("Q") }} />
+        <PieceIcon name="rook" className="cursor-pointer" color={color} onClick={() => { prom("R") }} />
+        <PieceIcon name="knight" className="cursor-pointer" color={color} onClick={() => { prom("N") }} />
+        <PieceIcon name="bishop" className="cursor-pointer" color={color} onClick={() => { prom("B") }} />
       </div>
     </main>
   )
