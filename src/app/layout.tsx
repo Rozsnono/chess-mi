@@ -17,7 +17,10 @@ export default function RootLayout({
 
 
   const board = new Board();
-  const stockfish = new Worker('stockfish.js');
+  let stockfish;
+  if (typeof window !== 'undefined') {
+    stockfish = new Worker('stockfish.js');
+  }
 
   return (
     <html lang="en">

@@ -97,9 +97,13 @@ export default class Board {
     botMove(moves: string[]) {
         let moved = true;
         let index = 0;
-        console.log(moves);
         do {
             try {
+                if(this.chess.history({ verbose: true }).slice(-3).filter((move, index) => index % 2 == 1 && move.to == moves[index].substring(2, 4) && move.from == moves[index].substring(0,2)).length > 0){
+                    console.log("repeated move")
+                    index++;
+                    continue;
+                }
                 this.chess.move(moves[index]);
                 this.setBoard(this.chess.board());
                 moved = true;
@@ -121,15 +125,21 @@ export default class Board {
         }
     }
 
-    private checking(): string {
+    checking(): string {
         if (this.chess.isCheckmate()) {
             return "checkmate";
         }
         if (this.chess.isStalemate()) {
             return "stalemate";
         }
+        if(this.chess.isThreefoldRepetition()){
+            return "threefold repetition";
+        }
         if (this.chess.isInsufficientMaterial()) {
             return "insufficient material";
+        }
+        if(this.chess.history().length > 200){
+            return "fifty move rule";
         }
         if (this.chess.isCheck()) {
             return "check";
@@ -137,7 +147,7 @@ export default class Board {
         return "none";
     }
 
-    private getPieceByType(label: string): string {
+    getPieceByType(label: string): string {
         switch (label) {
             case "p":
                 return "pawn";
@@ -161,9 +171,8 @@ export default class Board {
     }
 
     get missingPieces() {
-        // let missing: any = { "p": 8, "n": 2, "b": 2, "r": 2, "q": 1, "k": 1, "P": 8, "N": 2, "B": 2, "R": 2, "Q": 1, "K": 1};
-        // let missing: any = [{type: "p", number: 8}, {type: "n", number: 2}, {type: "b", number: 2}, {type: "r", number: 2}, {type: "q", number: 1}, {type: "k", number: 1}, {type: "P", number: 8}, {type: "N", number: 2}, {type: "B", number: 2}, {type: "R", number: 2}, {type: "Q", number: 1}, {type: "K", number: 1}]
-        let missing: any = [{ type: "p", number: "########" }, { type: "n", number: "##" }, { type: "b", number: "##" }, { type: "r", number: "##" }, { type: "q", number: "#" }, { type: "k", number: "#" }, { type: "P", number: "########" }, { type: "N", number: "##" }, { type: "B", number: "##" }, { type: "R", number: "##" }, { type: "Q", number: "#" }, { type: "K", number: "#" }]
+        let missing: any = [{type: "p", color: "b", number: "########", value: 1}, {type: "n", color: "b", number: "##", value: 3}, {type: "b", color: "b", number: "##", value: 3}, {type: "r", color: "b", number: "##", value: 5}, {type: "q", color: "b", number: "#", value: 9}, {type: "k", color: "b", number: "#", value: 100}, {type: "P", color: "w", number: "########", value: 1}, {type: "N", color: "w", number: "##", value: 3}, {type: "B", color: "w", number: "##", value: 3}, {type: "R", color: "w", number: "##", value: 5}, {type: "Q", color: "w", number: "#", value: 9}, {type: "K", color: "w", number: "#", value: 100}]
+        // let missing: any = [{ type: "p", number: "########" }, { type: "n", number: "##" }, { type: "b", number: "##" }, { type: "r", number: "##" }, { type: "q", number: "#" }, { type: "k", number: "#" }, { type: "P", number: "########" }, { type: "N", number: "##" }, { type: "B", number: "##" }, { type: "R", number: "##" }, { type: "Q", number: "#" }, { type: "K", number: "#" }]
         for (const x of this.chess_board) {
             for (const pieces of x) {
                 if (pieces != null) {
@@ -177,9 +186,23 @@ export default class Board {
             }
         }
 
-        return missing.map((value: { type: string, number: string }) => {
+        const tmp = missing.map((value: { type: string, number: string }) => {
             return { type: value.type, number: value.number, kind: this.getPieceByType(value.type.toLocaleLowerCase()), color: value.type == value.type.toUpperCase() ? "w" : "b" };
         });
+
+        let blackCount = 0;
+        let whiteCount = 0;
+        for (const value of missing) {
+            if(value.color == "b"){
+                blackCount += value.number.length * value.value;
+            }
+            if(value.color == "w"){
+                whiteCount += value.number.length * value.value;
+            }
+        }
+
+
+        return { missingPieces: tmp, black: blackCount, white: whiteCount};
 
     }
 
