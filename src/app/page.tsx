@@ -33,6 +33,7 @@ export default function Home() {
   useEffect(() => {
     stockfish.postMessage("uci");
     stockfish.postMessage("ucinewgame");
+    stockfish.postMessage("setoption name Skill Level value 3");
     stockfish.postMessage("isready");
 
     setInterval(() => {
@@ -188,16 +189,19 @@ export default function Home() {
 
         <UserPanel board={board} time={time} icon="user" user="User" color="b" value={board.missingPieces.black > board.missingPieces.white ? "+" + (board.missingPieces.black - board.missingPieces.white) : ""} />
       </main>
-      <main className="flex flex-col items-center justify-start gap-2 w-1/4 xl:h-[48rem] lg:h-[32rem] md:h-[24rem] sm:h-[16rem]">
+      <main className="flex flex-col items-center justify-start gap-2 w-1/4 xl:h-[48rem] lg:h-[32rem] md:h-[24rem] sm:h-[16rem] border rounded-md overflow-hidden">
+        <div className="border w-full text-center p-2">
+          Lépések:
+        </div>
         <div className="flex flex-wrap w-full h-fit max-h-full items-start overflow-y-auto">
           {board.chess.history().map((move, index) => {
             return <div key={index} className={"flex justify-center items-center w-1/2 border" + (index % 2 == 1 ? " bg-gray-200 border-gray-500" : "")}>
               {
-                board.getPieceByType(move[0].toLocaleLowerCase()) != "pawn" &&
+                board.getPieceByType(move[0].toLocaleLowerCase()) != "pawn" && move.length > 2 &&
                 <Image src={`/pieces/${board.getPieceByType(move[0].toLocaleLowerCase())}-${index % 2 == 1 ? "b" : "w"}.svg`} alt={board.getPieceByType(move[0].toLocaleLowerCase())} width={20} height={20} />
               }
               {
-                board.getPieceByType(move[0].toLocaleLowerCase()) != "pawn" ?
+                board.getPieceByType(move[0].toLocaleLowerCase()) != "pawn" && move.length > 2 ?
                   <div className="text-md">{move.slice(1)}</div> :
                   <div className="text-md">{move}</div>
               }
