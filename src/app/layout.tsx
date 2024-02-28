@@ -21,10 +21,14 @@ export default function RootLayout({
   if (typeof window !== 'undefined') {
     stockfish = new Worker('stockfish.js');
   }
+  let evaler;
+  if (typeof window !== 'undefined') {
+    evaler = new Worker('stockfish.js');
+  }
 
   return (
     <html lang="en">
-      <BoardContext.Provider value={{ board, stockfish }}>
+      <BoardContext.Provider value={{ board, stockfish, evaler }}>
         <body className={inter.className}>{children}</body>
       </BoardContext.Provider>
     </html>

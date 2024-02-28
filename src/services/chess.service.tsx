@@ -9,6 +9,9 @@ export default class Board {
 
     chess = new Chess();
 
+    depth = "1";
+    level = "1";
+
     constructor() {
         this.createBoard();
     }
@@ -95,6 +98,7 @@ export default class Board {
 
 
     botMove(moves: string[]) {
+        console.log(moves);
         let moved = true;
         let index = 0;
         do {

@@ -7,10 +7,11 @@ import { Chess } from "chess.js";
 export interface BoardContext {
   board: Board;
   stockfish: any;
+  evaler: any;
 }
 
 export const BoardContext = createContext<BoardContext>({
     board: new Board(),
-    stockfish: null
+    stockfish: null,
+    evaler: null
 });
-
