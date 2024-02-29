@@ -3,11 +3,14 @@ import { useContext, useState } from "react";
 import ChessBoard from "./chess/page";
 import Link from "next/link";
 import { BoardContext } from "@/services/context";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
 
   const [finish, setFinish] = useState(false);
   const [start, setStart] = useState(false);
+
+  const route = useRouter();
 
   const { board } = useContext(BoardContext);
 
@@ -20,6 +23,7 @@ export default function Home() {
     setFinish(false);
     board.depth = depth;
     board.level = level;
+    route.push("/chess");
   }
 
   return (
@@ -30,7 +34,7 @@ export default function Home() {
         <p>Play chess with a computer</p>
         <div className="w-full mx-auto">
           <label htmlFor="underline_select" className="block mb-2 text-sm font-medium text-gray-900">Select a level</label>
-          <select id="underline_select" onChange={(e)=>{setLevel(e.target.value)}} className="block py-2.5 px-0 w-full text-sm text-gray-800 bg-transparent border-0 border-b-2 border-gray-200 appearance-none dark:text-gray-400 dark:border-gray-700 focus:outline-none focus:ring-0 focus:border-gray-200 peer">
+          <select id="underline_select" onChange={(e) => { setLevel(e.target.value) }} className="block py-2.5 px-0 w-full text-sm text-gray-800 bg-transparent border-0 border-b-2 border-gray-200 appearance-none dark:text-gray-400 dark:border-gray-700 focus:outline-none focus:ring-0 focus:border-gray-200 peer">
             <optgroup label="Easy">
               <option value="1">Beginner</option>
               <option value="3">Novice</option>
@@ -59,7 +63,7 @@ export default function Home() {
 
         <div className="w-full mx-auto">
           <label htmlFor="underline_select" className="block mb-2 text-sm font-medium text-gray-900">Select depth</label>
-          <select id="underline_select" onChange={(e)=>{setLevel(e.target.value)}} className="block py-2.5 px-0 w-full text-sm text-gray-800 bg-transparent border-0 border-b-2 border-gray-200 appearance-none dark:text-gray-400 dark:border-gray-700 focus:outline-none focus:ring-0 focus:border-gray-200 peer">
+          <select id="underline_select" onChange={(e) => { setDepth(e.target.value) }} className="block py-2.5 px-0 w-full text-sm text-gray-800 bg-transparent border-0 border-b-2 border-gray-200 appearance-none dark:text-gray-400 dark:border-gray-700 focus:outline-none focus:ring-0 focus:border-gray-200 peer">
             <optgroup label="Fast response">
               <option value="1">depth 1</option>
               <option value="2">depth 2</option>
@@ -88,9 +92,9 @@ export default function Home() {
 
           </select>
         </div>
-        <Link href="/chess">
-          <button className="p-1 px-4 bg-green-800 rounded-lg text-white">Play</button>
-        </Link>
+
+
+        <button onClick={startGame} className="p-1 px-4 bg-green-800 rounded-lg text-white">Play</button>
       </div>
 
 

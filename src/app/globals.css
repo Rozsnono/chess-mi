@@ -7,8 +7,8 @@
   --background-start-rgb: 214, 219, 220;
   --background-end-rgb: 255, 255, 255;
 
-  --chess-board-rgb: 100, 110, 100;
-  --chess-board-rgb-alt: 240, 255, 240;
+  --chess-board-rgb: 100, 100, 100;
+  --chess-board-rgb-alt: 255, 255, 255;
 
   --chess-piece-rgb: 0, 0, 0;
   --chess-piece-rgb-alt: 255, 255, 255;

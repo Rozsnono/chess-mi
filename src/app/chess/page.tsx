@@ -5,9 +5,11 @@ import Image from "next/image";
 import { LegacyRef, use, useContext, useEffect, useReducer, useRef, useState } from "react";
 import { Chess, Square } from "chess.js";
 import Board, { ChessPiece } from "@/services/chess.service";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 
-export default function ChessBoard({ onEnd }: { onEnd: () => void }) {
+export default function ChessBoard() {
 
   const { board, stockfish } = useContext(BoardContext);
 
@@ -27,42 +29,57 @@ export default function ChessBoard({ onEnd }: { onEnd: () => void }) {
   const [end, setEnd] = useState(false);
   const endRef = useRef(false);
 
+  const route = useRouter()
+
 
   useEffect(() => {
     stockfish.postMessage("uci");
-    stockfish.postMessage("isready");
-    stockfish.postMessage("ucinewgame");
-    stockfish.postMessage("setoption name Skill Level value " + board.level);
 
     stockfish.onmessage = (event: any) => {
       if (end) return;
+      if (event.data === 'uciok') {
+        stockfish.postMessage('isready');
+      } else if (event.data === 'readyok') {
+        stockfish.postMessage('ucinewgame');
+        stockfish.postMessage('setoption name Skill Level value ' + board.level);
+        stockfish.postMessage('setoption name Aggressiveness value ' + parseInt(board.level) * 10);
+      }
       if (event.data.includes(`info depth ${board.depth} seldepth`)) {
         otherMoves.current = (event.data.split(" pv ")[1].split(" "));
       }
       if (event.data.includes("bestmove")) {
-        const res = board.botMove([event.data.split(" ")[1], ...otherMoves.current])
-        if (res == "none" || res == "check") {
-          setCheck(undefined);
-          if (res == "check") {
-            setCheck(board.turn);
-          }
-          setReload(reload + 1);
-          setAvailableMoves([]);
-          setSelectedStart(null);
-          // stockfish.postMessage("position fen " + board.chess.fen());
-          // stockfish.postMessage("go depth " + deep);
-        } else if (res != undefined) {
-          onEnd();
-          setEnd(true);
-          endRef.current = true;
-          console.log("End");
-        }
-
+        prepareNextMove(event.data.split(" ")[1]);
       }
     };
   }, []);
 
 
+  function prepareNextMove(move: string) {
+    const res = board.botMove([move, ...otherMoves.current])
+    if (res == "none" || res == "check") {
+      setCheck(undefined);
+      if (res == "check") {
+        setCheck(board.turn);
+      }
+      setReload(reload + 1);
+      setAvailableMoves([]);
+      setSelectedStart(null);
+      // stockfish.postMessage("position fen " + board.chess.fen());
+      // stockfish.postMessage("go depth " + deep);
+    } else if (res != undefined) {
+      onEnd();
+      setEnd(true);
+      endRef.current = true;
+      console.log("End");
+    }
+  }
+
+  function onEnd() {
+    setCheck(undefined);
+    setReload(reload + 1);
+    setAvailableMoves([]);
+    setSelectedStart(null);
+  }
 
   function startSelection(piece: ChessPiece | null, newPiece?: boolean) {
     if (piece == null) return;
@@ -88,7 +105,6 @@ export default function ChessBoard({ onEnd }: { onEnd: () => void }) {
         setCheck(board.turn);
       } else if (res != "none") {
         endRef.current = true;
-        onEnd();
         setEnd(true);
       }
       setReload(reload + 1);
@@ -106,6 +122,7 @@ export default function ChessBoard({ onEnd }: { onEnd: () => void }) {
   }
 
   function StartTimer() {
+    if (timeRef.current.w < 600 || timeRef.current.b < 600) return;
     setInterval(() => {
       if (endRef.current) return;
       if (board.checking() == "none" || board.checking() == "check" || timeRef.current.w != 0 || timeRef.current.b != 0) {
@@ -137,6 +154,14 @@ export default function ChessBoard({ onEnd }: { onEnd: () => void }) {
 
   return (
     <main className="flex min-h-screen items-center justify-center gap-2">
+
+      {
+        end &&
+        <main className="absolute bg-white border rounded-md z-50 p-10">
+          <Link href={"/analiser"}>Analize</Link>
+        </main>
+      }
+
       <main className="flex flex-col items-center justify-center gap-2">
         <UserPanel board={board} time={time} icon="robot" user="Stockfish" color="w" value={board.missingPieces.white > board.missingPieces.black ? "+" + (board.missingPieces.white - board.missingPieces.black) : ""} />
 
@@ -196,8 +221,16 @@ export default function ChessBoard({ onEnd }: { onEnd: () => void }) {
         <UserPanel board={board} time={time} icon="user" user="User" color="b" value={board.missingPieces.black > board.missingPieces.white ? "+" + (board.missingPieces.black - board.missingPieces.white) : ""} />
       </main>
       <main className="flex flex-col items-center justify-start gap-2 w-1/4 xl:h-[48rem] lg:h-[32rem] md:h-[24rem] sm:h-[16rem] border rounded-md overflow-hidden">
+        <div className="flex justify-between w-full px-5 pt-2">
+          <div>
+            Depth {board.depth}
+          </div>
+          <div>
+            Level {board.level}
+          </div>
+        </div>
         <div className="border w-full text-center p-2">
-          Lépések:
+          Moves:
         </div>
         <div className="flex flex-wrap w-full h-fit max-h-full items-start overflow-y-auto">
           {board.chess.history().map((move, index) => {
@@ -241,7 +274,7 @@ export function UserPanel({ board, color, value, user, icon, time }: { board: Bo
           <Image src={"images/" + icon + ".svg"} alt={user} width={100} height={100}></Image>
         </div>
         <div className="flex flex-col">
-          <div>{user} (2000)</div>
+          <div>{user} ({parseInt(board.level) * 150})</div>
           <hr />
           <div className="flex items-center h-4">
             {
