@@ -16,6 +16,7 @@ export default function Home() {
 
   const [level, setLevel] = useState("1");
   const [depth, setDepth] = useState("1");
+  const [team, setTeam] = useState("w");
 
   function startGame() {
     setStart(true);
@@ -23,6 +24,8 @@ export default function Home() {
     setFinish(false);
     board.depth = depth;
     board.level = level;
+    board.team = team;
+    board.createBoard();
     route.push("/chess");
   }
 
@@ -91,6 +94,15 @@ export default function Home() {
             </optgroup>
 
           </select>
+        </div>
+
+        <div className="inline-flex rounded-md shadow-sm" role="group">
+          <button type="button" onClick={()=>{setTeam("w")}} className={"px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-s-lg " + (team === "w" ? "bg-green-500 text-white" : "hover:bg-gray-100 hover:text-green-700 focus:z-10 focus:ring-2 focus:ring-green-700 focus:text-green-700 ")}>
+            White
+          </button>
+          <button type="button" onClick={()=>{setTeam("b")}} className={"px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-e-lg " + (team === "b" ? "bg-green-500 text-white" : "hover:bg-gray-100 hover:text-green-700 focus:z-10 focus:ring-2 focus:ring-green-700 focus:text-green-700 ")}>
+            Black
+          </button>
         </div>
 
 

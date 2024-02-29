@@ -4,29 +4,22 @@ import { Chess, Square, WHITE } from "chess.js";
 
 export default class Board {
 
-    chess_board: Array<Array<ChessPiece | null>> = [];
+    chess_board: Array<Array<ChessPiece | null>> = [[],[],[],[],[],[],[],[]];
     boardLabels: Array<Array<string>> = [["a", "b", "c", "d", "e", "f", "g", "h"], ["8", "7", "6", "5", "4", "3", "2", "1"]];
 
     chess = new Chess();
 
     depth = "1";
     level = "1";
+    team = "w";
 
     constructor() {
         this.createBoard();
     }
 
     createBoard() {
-        this.chess_board = [
-            [new ChessPiece("rook", "b", "a8"), new ChessPiece("knight", "b", "b8"), new ChessPiece("bishop", "b", "c8"), new ChessPiece("queen", "b", "d8"), new ChessPiece("king", "b", "e8"), new ChessPiece("bishop", "b", "f8"), new ChessPiece("knight", "b", "g8"), new ChessPiece("rook", "b", "h8")],
-            [new ChessPiece("pawn", "b", "a7"), new ChessPiece("pawn", "b", "b7"), new ChessPiece("pawn", "b", "c7"), new ChessPiece("pawn", "b", "d7"), new ChessPiece("pawn", "b", "e7"), new ChessPiece("pawn", "b", "f7"), new ChessPiece("pawn", "b", "g7"), new ChessPiece("pawn", "b", "h7")],
-            [null, null, null, null, null, null, null, null],
-            [null, null, null, null, null, null, null, null],
-            [null, null, null, null, null, null, null, null],
-            [null, null, null, null, null, null, null, null],
-            [new ChessPiece("PAWN", "w", "a2"), new ChessPiece("PAWN", "w", "b2"), new ChessPiece("PAWN", "w", "c2"), new ChessPiece("PAWN", "w", "d2"), new ChessPiece("PAWN", "w", "e2"), new ChessPiece("PAWN", "w", "f2"), new ChessPiece("PAWN", "w", "g2"), new ChessPiece("PAWN", "w", "h2")],
-            [new ChessPiece("ROOK", "w", "a1"), new ChessPiece("KNIGHT", "w", "b1"), new ChessPiece("BISHOP", "w", "c1"), new ChessPiece("QUEEN", "w", "d1"), new ChessPiece("KING", "w", "e1"), new ChessPiece("BISHOP", "w", "f1"), new ChessPiece("KNIGHT", "w", "g1"), new ChessPiece("ROOK", "w", "h1")]
-        ]
+        this.chess.reset();
+        this.setBoard(this.chess.board());
     }
 
     get boardMatrix() {
@@ -103,7 +96,7 @@ export default class Board {
         let index = 0;
         do {
             try {
-                if(this.chess.history({ verbose: true }).slice(-3).filter((move, index) => index % 2 == 1 && move.to == moves[index].substring(2, 4) && move.from == moves[index].substring(0,2)).length > 0){
+                if (this.chess.history({ verbose: true }).slice(-3).filter((move, index) => index % 2 == 1 && move.to == moves[index].substring(2, 4) && move.from == moves[index].substring(0, 2)).length > 0) {
                     console.log("repeated move")
                     index++;
                     continue;
@@ -113,6 +106,7 @@ export default class Board {
                 moved = true;
             } catch (error) {
                 index++;
+                console.log(error);
             }
         } while (!moved);
         return this.checking();
@@ -136,13 +130,13 @@ export default class Board {
         if (this.chess.isStalemate()) {
             return "stalemate";
         }
-        if(this.chess.isThreefoldRepetition()){
+        if (this.chess.isThreefoldRepetition()) {
             return "threefold repetition";
         }
         if (this.chess.isInsufficientMaterial()) {
             return "insufficient material";
         }
-        if(this.chess.history().length > 200){
+        if (this.chess.history().length > 200) {
             return "fifty move rule";
         }
         if (this.chess.isCheck()) {
@@ -175,7 +169,7 @@ export default class Board {
     }
 
     get missingPieces() {
-        let missing: any = [{type: "p", color: "b", number: "########", value: 1}, {type: "n", color: "b", number: "##", value: 3}, {type: "b", color: "b", number: "##", value: 3}, {type: "r", color: "b", number: "##", value: 5}, {type: "q", color: "b", number: "#", value: 9}, {type: "k", color: "b", number: "#", value: 100}, {type: "P", color: "w", number: "########", value: 1}, {type: "N", color: "w", number: "##", value: 3}, {type: "B", color: "w", number: "##", value: 3}, {type: "R", color: "w", number: "##", value: 5}, {type: "Q", color: "w", number: "#", value: 9}, {type: "K", color: "w", number: "#", value: 100}]
+        let missing: any = [{ type: "p", color: "b", number: "########", value: 1 }, { type: "n", color: "b", number: "##", value: 3 }, { type: "b", color: "b", number: "##", value: 3 }, { type: "r", color: "b", number: "##", value: 5 }, { type: "q", color: "b", number: "#", value: 9 }, { type: "k", color: "b", number: "#", value: 100 }, { type: "P", color: "w", number: "########", value: 1 }, { type: "N", color: "w", number: "##", value: 3 }, { type: "B", color: "w", number: "##", value: 3 }, { type: "R", color: "w", number: "##", value: 5 }, { type: "Q", color: "w", number: "#", value: 9 }, { type: "K", color: "w", number: "#", value: 100 }]
         // let missing: any = [{ type: "p", number: "########" }, { type: "n", number: "##" }, { type: "b", number: "##" }, { type: "r", number: "##" }, { type: "q", number: "#" }, { type: "k", number: "#" }, { type: "P", number: "########" }, { type: "N", number: "##" }, { type: "B", number: "##" }, { type: "R", number: "##" }, { type: "Q", number: "#" }, { type: "K", number: "#" }]
         for (const x of this.chess_board) {
             for (const pieces of x) {
@@ -197,16 +191,16 @@ export default class Board {
         let blackCount = 0;
         let whiteCount = 0;
         for (const value of missing) {
-            if(value.color == "b"){
+            if (value.color == "b") {
                 blackCount += value.number.length * value.value;
             }
-            if(value.color == "w"){
+            if (value.color == "w") {
                 whiteCount += value.number.length * value.value;
             }
         }
 
 
-        return { missingPieces: tmp, black: blackCount, white: whiteCount};
+        return { missingPieces: tmp, black: blackCount, white: whiteCount };
 
     }
 
