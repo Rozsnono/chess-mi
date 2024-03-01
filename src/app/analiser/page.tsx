@@ -12,14 +12,15 @@ import { useRouter } from "next/navigation";
 import { UserPanel } from "../components/user.component";
 import ChessBoardWhite from "../components/white.chessboard";
 import ChessBoardBlack from "../components/black.chessboard";
+import Link from "next/link";
 
 
 export default function Analizer() {
 
     const { board, evaler } = useContext(BoardContext);
     const fen = useRef(board.chess.fen());
-    const history = useRef(board.chess.history());
-    // const history = useRef(['e4', 'e5', 'f4', 'Nf6', 'fxe5', 'Nxe4', 'Nf3', 'd5', 'Nd4', 'Qg5', 'h4', 'Qg3+', 'Ke2', 'Bg4+', 'Nf3', 'Nd7', 'Ke3', 'O-O-O', 'Qe2', 'Nec5', 'Qf2', 'd4+', 'Ke2', 'Qf4', 'Qe3', 'dxe3', 'dxe3', 'Qa4', 'b3', 'Qb4', 'c3', 'Qe4', 'Kd2', 'Bf5', 'Nd4', 'Nxe5', 'Bd3', 'Qxg2+', 'Ke1', 'Ncxd3+', 'Kd1', 'Bg4+', 'Ne2', 'Nb4+', 'Ke1']);
+    // const history = useRef(board.chess.history());
+    const history = useRef(['e4', 'e5', 'f4', 'Nf6', 'fxe5', 'Nxe4', 'Nf3', 'd5', 'Nd4', 'Qg5', 'h4', 'Qg3+', 'Ke2', 'Bg4+', 'Nf3', 'Nd7', 'Ke3', 'O-O-O', 'Qe2', 'Nec5', 'Qf2', 'd4+', 'Ke2', 'Qf4', 'Qe3', 'dxe3', 'dxe3', 'Qa4', 'b3', 'Qb4', 'c3', 'Qe4', 'Kd2', 'Bf5', 'Nd4', 'Nxe5', 'Bd3', 'Qxg2+', 'Ke1', 'Ncxd3+', 'Kd1', 'Bg4+', 'Ne2', 'Nb4+', 'Ke1']);
 
     const route = useRouter();
 
@@ -39,24 +40,25 @@ export default function Analizer() {
                 evaler.postMessage('ucinewgame');
                 evaler.postMessage('setoption name Skill Level value 20');
             }
-            if (progressRef.current < 100) {
+            console.log(progressRef.current)
+            if (progressRef.current < 99) {
+                let score = "";
                 if (event.data.includes("info depth 5")) {
-                    const score = event.data.split("score")[1].split(" ")[2].trim();
-                    setProgess(progess => progess + 100 / history.current.length);
-                    progressRef.current = progressRef.current + 100 / history.current.length;
+                    score = (event.data.includes("mate") ? "M" : "") + event.data.split("score")[1].split(" ")[2].trim();
                     moves.current.push(score);
                     analize();
                 }
-                if (event.data.includes("Total Evaluation:")) {
-                    const score = event.data.split("Total Evaluation:")[1].split("(")[0].trim();
-                    setProgess(progess => progess + 100 / history.current.length);
-                    progressRef.current = progressRef.current + 100 / history.current.length;
-                    moves.current.push(score);
-                    analize();
-                }
+                // if (event.data.includes("Total Evaluation:")) {
+                //     score = event.data.split("Total Evaluation:")[1].split("(")[0].trim();
+
+                // }
+
             }
             else {
                 setProgess(100);
+                board.chess.reset();
+                board.setBoard(board.chess.board());
+
                 // moves.current = moves.current.filter((move: any) => { return move.move != undefined });
             }
         };
@@ -74,22 +76,42 @@ export default function Analizer() {
         return moves;
     }
 
+    function mapNumber(inputNumber: number) {
+        if (inputNumber === 0) return 0;
+        if (inputNumber === 10) return 10;
+        if (inputNumber === 100) return 30;
+        if (inputNumber === 3000) return 50;
+
+        if (inputNumber >= 1 && inputNumber <= 10) {
+            return (inputNumber - 1) + 1;
+        } else if (inputNumber >= 51 && inputNumber <= 99) {
+            return (inputNumber - 51) / 2.5 + 10;
+        } else if (inputNumber >= 101 && inputNumber <= 2999) {
+            return (inputNumber - 101) / 100 + 32;
+        } else {
+            return 0;
+        }
+    }
+
     const index = useRef(0);
     const progressRef = useRef(0);
-    const moves = useRef<any>([]);
+    const moves = useRef<any>(["0"]);
 
     function analize() {
         try {
-
+            setProgess(progess => progess + 100 / history.current.length);
+            progressRef.current = progressRef.current + 100 / history.current.length;
             let moves = board.chess.move(history.current[index.current]);
             console.log("position fen ");
             evaler.postMessage("position fen " + board.chess.fen());
-            // evaler.postMessage("go depth 5");
-            evaler.postMessage("eval");
+            evaler.postMessage("go depth 5");
+            console.log("asd")
+            // evaler.postMessage("eval");
             index.current++;
         } catch (error) {
             board.chess.reset();
             board.setBoard(board.chess.board());
+            console.log(error)
             // board.chess.load(fen.current);
         }
     }
@@ -115,16 +137,28 @@ export default function Analizer() {
                 setMoving(moving => history.current.length);
             } else if (max == -1) {
                 board.chess.reset();
+                console.log(history.current)
                 setMoving(0);
             }
             board.setBoard(board.chess.board());
         } catch (error) {
-
+            console.log(error)
         }
     }
 
     function getHeigh() {
-        return (parseFloat(moves.current[moving]) * -1 + 25) * 2 + "%";
+        try {
+            if (moving % 2 == 0) {
+                if (moves.current[moving].includes("M")) return (moves.current[moving].includes("-") ? 100 : 0) + "%";
+            } else {
+                if (moves.current[moving].includes("M")) return (moves.current[moving].includes("-") ? 0 : 100) + "%";
+            }
+            const number = Math.abs(moves.current[moving])
+            const height = mapNumber(number);
+            return (number < 0 ? (50 - height) : (height + 50)) + "%";
+        } catch (error) {
+
+        }
     }
 
     function getMoves() {
@@ -149,7 +183,7 @@ export default function Analizer() {
             {
                 progess >= 100 - 1 &&
                 <>
-                    <main className="flex flex-col items-center justify-start gap-2 w-5 xl:h-[48rem] lg:h-[32rem] md:h-[24rem] sm:h-[16rem] border rounded-md overflow-hidden">
+                    <main className={"flex flex-col items-center justify-start gap-2 w-5 2xl:h-[48rem] xl:h-[32rem] lg:h-[32rem] md:h-[24rem] sm:h-[16rem] border rounded-md overflow-hidden" + (board.team == "w" ? "" : " rotate-180")}>
                         <div className="bg-[#777] w-full" style={{ height: getHeigh() }}></div>
                     </main>
                     <main className="flex flex-col items-center justify-center gap-2">
@@ -186,7 +220,7 @@ export default function Analizer() {
                                         {index + 1}.
                                     </div>
 
-                                    <div className="flex justify-start items-center w-12">
+                                    <div className="flex justify-start items-center w-16">
                                         {
                                             board.getPieceByType(move.split(" ")[0][0].toLocaleLowerCase()) != "pawn" && move.split(" ")[0].length > 2 &&
                                             <Image src={`/pieces/${board.getPieceByType(move.split(" ")[0][0].toLocaleLowerCase())}-${"w"}.svg`} alt={board.getPieceByType(move.split(" ")[0][0].toLocaleLowerCase())} width={20} height={20} />
@@ -199,7 +233,7 @@ export default function Analizer() {
                                     </div>
                                     {
                                         move.split(" ").length > 1 &&
-                                        <div className="flex justify-start items-center w-12">
+                                        <div className="flex justify-start items-center w-16">
                                             {
                                                 board.getPieceByType(move.split(" ")[1][0].toLocaleLowerCase()) != "pawn" && move.split(" ")[1].length > 2 &&
                                                 <Image src={`/pieces/${board.getPieceByType(move.split(" ")[1][0].toLocaleLowerCase())}-${"b"}.svg`} alt={board.getPieceByType(move.split(" ")[1][0].toLocaleLowerCase())} width={20} height={20} />
@@ -215,11 +249,15 @@ export default function Analizer() {
                                 </div>
                             })}
                         </div>
-                        <div className="flex items-center ">
-                            <Image src={ArrowMaxLeft} width={32} height={32} alt="" className="cursor-pointer" onClick={() => { setBoard(0, -1) }}></Image>
-                            <Image src={ArrowLeft} width={32} height={32} alt="" onClick={() => { setBoard(-1) }} className="cursor-pointer"></Image>
-                            <Image src={ArrowRight} width={32} height={32} alt="" onClick={() => { setBoard(1) }} className="cursor-pointer"></Image>
-                            <Image src={ArrowMaxRight} width={32} height={32} alt="" className="cursor-pointer" onClick={() => { setBoard(0, 1) }}></Image>
+                        <div className="flex items-center justify-between w-full relative px-2 p-1">
+                            <Link className="z-50" href={"/"}><button className="border rounded-lg p-2 px-4 border-gray-400 hover:bg-gray-500 hover:text-white duration-100">New Game</button></Link>
+                            <div className="flex items-center absolute w-full justify-center z-40">
+                                <Image src={ArrowMaxLeft} width={32} height={32} alt="" className="cursor-pointer" onClick={() => { setBoard(0, -1) }}></Image>
+                                <Image src={ArrowLeft} width={32} height={32} alt="" onClick={() => { setBoard(-1) }} className="cursor-pointer"></Image>
+                                <Image src={ArrowRight} width={32} height={32} alt="" onClick={() => { setBoard(1) }} className="cursor-pointer"></Image>
+                                <Image src={ArrowMaxRight} width={32} height={32} alt="" className="cursor-pointer" onClick={() => { setBoard(0, 1) }}></Image>
+                            </div>
+
                         </div>
                     </main>
                 </>

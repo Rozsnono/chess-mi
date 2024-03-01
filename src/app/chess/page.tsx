@@ -228,7 +228,7 @@ export default function Home() {
 
         <UserPanel board={board} time={time} level={false} icon="user" user="User" color={"b"} value={board.missingPieces.black > board.missingPieces.white ? "+" + (board.missingPieces.black - board.missingPieces.white) : ""} />
       </main>
-      <main className="flex flex-col items-center justify-start gap-2 w-1/4 xl:h-[48rem] lg:h-[32rem] md:h-[24rem] sm:h-[16rem] border rounded-md overflow-hidden">
+      <main className="flex flex-col items-center justify-start gap-2 w-1/4 2xl:h-[48rem] xl:h-[32rem] lg:h-[32rem] md:h-[24rem] sm:h-[16rem] border rounded-md overflow-hidden">
         <div className="flex justify-between w-full px-5 pt-2">
           <div>
             Depth {board.depth}
@@ -247,7 +247,7 @@ export default function Home() {
                 {index + 1}.
               </div>
 
-              <div className="flex justify-start items-center w-12">
+              <div className="flex justify-start items-center w-16">
                 {
                   board.getPieceByType(move.split(" ")[0][0].toLocaleLowerCase()) != "pawn" && move.split(" ")[0].length > 2 &&
                   <Image src={`/pieces/${board.getPieceByType(move.split(" ")[0][0].toLocaleLowerCase())}-${"w"}.svg`} alt={board.getPieceByType(move.split(" ")[0][0].toLocaleLowerCase())} width={20} height={20} />
@@ -260,7 +260,7 @@ export default function Home() {
               </div>
               {
                 move.split(" ").length > 1 &&
-                <div className="flex justify-start items-center w-12">
+                <div className="flex justify-start items-center w-16">
                   {
                     board.getPieceByType(move.split(" ")[1][0].toLocaleLowerCase()) != "pawn" && move.split(" ")[1].length > 2 &&
                     <Image src={`/pieces/${board.getPieceByType(move.split(" ")[1][0].toLocaleLowerCase())}-${"b"}.svg`} alt={board.getPieceByType(move.split(" ")[1][0].toLocaleLowerCase())} width={20} height={20} />

@@ -5,7 +5,7 @@ import Clock from "@/assets/clock.icon.svg"
 
 export function UserPanel({ board, color, value, user, icon, time, level }: { board: Board, color: "b" | "w", value: string, user: string, icon: string, time: { w: number, b: number }, level: boolean }) {
     return (
-        <div className="flex xl:w-[48rem] lg:w-[32rem] md:w-[24rem] sm:w-[16rem] items-center justify-between gap-2">
+        <div className="flex 2xl:w-[48rem] xl:w-[32rem] lg:w-[32rem] md:w-[24rem] sm:w-[16rem] items-center justify-between gap-2">
             <div className="flex gap-2 items-center">
                 <div className="flex border border-gray-500 rounded-md w-10 h-10 pt-2 bg-gray-300 ">
                     <Image src={"images/" + icon + ".svg"} alt={user} width={100} height={100}></Image>
