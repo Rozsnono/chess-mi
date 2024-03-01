@@ -7,9 +7,13 @@ import { Chess, Square } from "chess.js";
 import Board, { ChessPiece } from "@/services/chess.service";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { UserPanel } from "../components/user.component";
+import ChessBoard from "../components/white.chessboard";
+import ChessBoardWhite from "../components/white.chessboard";
+import ChessBoardBlack from "../components/black.chessboard";
 
 
-export default function ChessBoard() {
+export default function Home() {
 
   const { board, stockfish } = useContext(BoardContext);
 
@@ -30,10 +34,22 @@ export default function ChessBoard() {
   const endRef = useRef(false);
 
 
-  const route = useRouter()
+  const route = useRouter();
+
+  function getCookie(name: string) {
+    var nameEQ = name + "=";
+    var ca = document.cookie.split(';');
+    for (var i = 0; i < ca.length; i++) {
+      var c = ca[i];
+      while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+      if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+    }
+    return null;
+  }
 
 
   useEffect(() => {
+
     stockfish.postMessage("uci");
 
     stockfish.onmessage = (event: any) => {
@@ -60,6 +76,23 @@ export default function ChessBoard() {
         }, 1000);
       }
     };
+
+    if (document.cookie != "") {
+      const cookie = getCookie("chess");
+      if (cookie != null) {
+        const res = JSON.parse(cookie);
+        const response = board.loadGame(res.fen, res.history, res.time, res.level, res.depth, res.team);
+        board.setBoard(board.chess.board());
+        setTime(board.time);
+        timeRef.current = board.time;
+        setReload(reload + 1);
+        if (response) {
+          stockfish.postMessage("position fen " + board.chess.fen() + " moves " + board.chess.history().join(" "));
+          stockfish.postMessage("go depth " + board.depth);
+        }
+        StartTimer(true);
+      }
+    }
   }, []);
 
 
@@ -77,8 +110,6 @@ export default function ChessBoard() {
 
       const history = board.chess.history({ verbose: true });
       setPrevMoves({ from: history[history.length - 1].from, to: history[history.length - 1].to });
-      // stockfish.postMessage("position fen " + board.chess.fen());
-      // stockfish.postMessage("go depth " + deep);
     } else if (res != undefined) {
       onEnd();
       setEnd(true);
@@ -123,8 +154,7 @@ export default function ChessBoard() {
       setReload(reload + 1);
       setAvailableMoves([]);
       setSelectedStart(null);
-      const history = board.chess.history({ verbose: true });
-      setPrevMoves({ from: history[history.length - 1].from, to: history[history.length - 1].to });
+      board.saveGame();
       stockfish.postMessage("position fen " + board.chess.fen() + " moves " + board.chess.history().join(" "));
       stockfish.postMessage("go depth " + board.depth);
       StartTimer();
@@ -134,8 +164,8 @@ export default function ChessBoard() {
     }
   }
 
-  function StartTimer() {
-    if (timeRef.current.w < 600 || timeRef.current.b < 600) return;
+  function StartTimer(startAnyway?: boolean) {
+    if ((timeRef.current.w < 600 || timeRef.current.b < 600) && !startAnyway) return;
     setInterval(() => {
       if (endRef.current) return;
       if (board.checking() == "none" || board.checking() == "check" || timeRef.current.w != 0 || timeRef.current.b != 0) {
@@ -145,7 +175,9 @@ export default function ChessBoard() {
         else {
           timeRef.current = { w: timeRef.current.w, b: timeRef.current.b - 1 };
         }
+        board.time = timeRef.current;
         setTime(timeRef.current);
+        board.saveGame();
         if (timeRef.current.w == 0 || timeRef.current.b == 0) {
           setEnd(true);
         }
@@ -182,121 +214,19 @@ export default function ChessBoard() {
       }
 
       <main className="flex flex-col items-center justify-center gap-2">
-        <UserPanel board={board} time={time} icon="robot" user="Stockfish" color="w" value={board.missingPieces.white > board.missingPieces.black ? "+" + (board.missingPieces.white - board.missingPieces.black) : ""} />
+        <UserPanel board={board} time={time} level={true} icon="robot" user="Stockfish" color={"w"} value={board.missingPieces.white > board.missingPieces.black ? "+" + (board.missingPieces.white - board.missingPieces.black) : ""} />
 
         {
           board.team == "w" &&
-          <div className={"chessBoard border-2 border-black select-none"} key={reload}>
-            {
-              board.chess_board.map((y, indexY) =>
-                <div className="grid grid-cols-8" key={indexY}>
-                  {
-                    board.chess_board[indexY].map((x, indexX) =>
-                      <div className={"xl:w-24 xl:h-24 lg:w-16 lg:h-16 md:w-12 md:h-12 sm:w-8 sm:h-8 relative chessPlate" + ((indexY + indexX) % 2 == 0 ? "-dark" : "")} key={board.boardLabels[1][indexX] + board.boardLabels[0][indexY]} onMouseDown={() => { startSelection(x) }} onMouseUp={() => { move(availableMoves.filter(move => move.check == board.boardLabels[0][indexX].toLocaleLowerCase() + board.boardLabels[1][indexY])[0], board.boardLabels[0][indexX].toLocaleLowerCase() + board.boardLabels[1][indexY] as Square) }}>
-                        {
-                          (indexX == 0) && <div className={"absolute top-0 left-1 "}>{board.boardLabels[1][indexY]}</div>
-                        }
-                        {
-                          (indexY == 7) && <div className={"absolute bottom-0 right-1 "}>{board.boardLabels[0][indexX].toUpperCase()}</div>
-                        }
-
-                        {
-                          selectedStart != null && selectedStart == x?.square &&
-                          <div className="absolute top-0 left-0 w-full h-full bg-blue-700 opacity-20"></div>
-                        }
-
-                        <div className={"relative z-10 cursor-pointer" + (board.team == "b" ? " rotate-180" : "")}>
-                          {board.chess_board[indexY][indexX]?.getIcon()}
-                        </div>
-                        {
-                          availableMoves.filter(move => move.check == board.boardLabels[0][indexX] + board.boardLabels[1][indexY]).length > 0 &&
-                          <div className="absolute z-20 top-0 left-0 w-full h-full opacity-50 flex justify-center items-center hover cursor-pointer">
-                            <div className="w-1/4 h-1/4 bg-gray-700 rounded-full gray"></div>
-                          </div>
-                        }
-
-                        {
-                          (prevMoves.from == (board.boardLabels[0][indexX] + board.boardLabels[1][indexY]) || prevMoves.to == (board.boardLabels[0][indexX] + board.boardLabels[1][indexY])) &&
-                          <div className="absolute top-0 left-0 w-full h-full opacity-60 flex justify-center items-center border-4 border-blue-700"> </div>
-                        }
-
-                        {
-                          x?.kind.toLowerCase() == "king" && x.color == check &&
-                          <div className="absolute top-0 left-0 w-full h-full opacity-40 flex justify-center items-center border-4 border-red-700">
-                          </div>
-                        }
-
-                        {
-                          promote != null && promote.square == board.boardLabels[0][indexX].toLocaleLowerCase() + board.boardLabels[1][indexY] as Square &&
-                          <Promotion x={indexX} y={indexY} color={promote.color as "w" | "b"} prom={(prom) => { promotion(promote.square, prom); }} />
-                        }
-
-                      </div>
-                    )
-                  }
-                </div>
-              )
-            }
-          </div>
+          <ChessBoardWhite board={board} reload={reload} selectedStart={selectedStart} availableMoves={availableMoves} prevMoves={prevMoves} check={check} startSelection={startSelection} move={move} promote={promote} promotion={promotion} />
         }
 
         {
           board.team == "b" &&
-          <div className={"chessBoard border-2 border-black select-none" + (board.team == "b" ? " rotate-180" : "")} key={reload}>
-            {
-              board.chess_board.map((y, indexY) =>
-                <div className="grid grid-cols-8" key={indexY}>
-                  {
-                    board.chess_board[indexY].map((x, indexX) =>
-                      <div className={"xl:w-24 xl:h-24 lg:w-16 lg:h-16 md:w-12 md:h-12 sm:w-8 sm:h-8 relative chessPlate" + ((indexY + indexX) % 2 == 0 ? "-dark" : "")} key={board.boardLabels[1][indexX] + board.boardLabels[0][indexY]} onMouseDown={() => { startSelection(x) }} onMouseUp={() => { move(availableMoves.filter(move => move.check == board.boardLabels[0][indexX].toLocaleLowerCase() + board.boardLabels[1][indexY])[0], board.boardLabels[0][indexX].toLocaleLowerCase() + board.boardLabels[1][indexY] as Square) }}>
-                        {
-                          (indexY == 0) && <div className={"absolute top-0 left-1 " + (board.team == "b" ? " rotate-180" : "")}>{board.boardLabels[1][7 - indexX]}</div>
-                        }
-                        {
-                          (indexX == 7) && <div className={"absolute bottom-0 right-1 " + (board.team == "b" ? " rotate-180" : "")}>{board.boardLabels[0][7 - indexY].toUpperCase()}</div>
-                        }
-
-                        {
-                          selectedStart != null && selectedStart == (board.boardLabels[0][indexX] + board.boardLabels[1][indexY]) &&
-                          <div className="absolute top-0 left-0 w-full h-full bg-blue-700 opacity-20"></div>
-                        }
-
-                        <div className={"relative z-10 cursor-pointer" + (board.team == "b" ? " rotate-180" : "")}>
-                          {board.chess_board[indexY][indexX]?.getIcon()}
-                        </div>
-                        {
-                          availableMoves.filter(move => move.check == board.boardLabels[0][indexX] + board.boardLabels[1][indexY]).length > 0 &&
-                          <div className="absolute z-20 top-0 left-0 w-full h-full opacity-50 flex justify-center items-center hover cursor-pointer">
-                            <div className="w-1/4 h-1/4 bg-gray-700 rounded-full gray"></div>
-                          </div>
-                        }
-
-                        {
-                          (prevMoves.from == (board.boardLabels[0][indexX] + board.boardLabels[1][indexY]) || prevMoves.to == (board.boardLabels[0][indexX] + board.boardLabels[1][indexY])) &&
-                          <div className="absolute top-0 left-0 w-full h-full opacity-40 flex justify-center items-center border-4 border-blue-700"> </div>
-                        }
-
-                        {
-                          x?.kind.toLowerCase() == "king" && x.color == check &&
-                          <div className="absolute top-0 left-0 w-full h-full opacity-20 flex justify-center items-center bg-red-700">
-                          </div>
-                        }
-
-                        {
-                          promote != null && promote.square == board.boardLabels[0][indexX].toLocaleLowerCase() + board.boardLabels[1][indexY] as Square &&
-                          <Promotion x={indexX} y={indexY} color={promote.color as "w" | "b"} prom={(prom) => { promotion(promote.square, prom); }} />
-                        }
-
-                      </div>
-                    )
-                  }
-                </div>
-              )
-            }
-          </div>
+          <ChessBoardBlack board={board} reload={reload} selectedStart={selectedStart} availableMoves={availableMoves} prevMoves={prevMoves} check={check} startSelection={startSelection} move={move} promote={promote} promotion={promotion} />
         }
 
-        <UserPanel board={board} time={time} icon="user" user="User" color="b" value={board.missingPieces.black > board.missingPieces.white ? "+" + (board.missingPieces.black - board.missingPieces.white) : ""} />
+        <UserPanel board={board} time={time} level={false} icon="user" user="User" color={"b"} value={board.missingPieces.black > board.missingPieces.white ? "+" + (board.missingPieces.black - board.missingPieces.white) : ""} />
       </main>
       <main className="flex flex-col items-center justify-start gap-2 w-1/4 xl:h-[48rem] lg:h-[32rem] md:h-[24rem] sm:h-[16rem] border rounded-md overflow-hidden">
         <div className="flex justify-between w-full px-5 pt-2">
@@ -357,63 +287,5 @@ export default function ChessBoard() {
 }
 
 
-export function Promotion({ x, y, prom, color }: { x: number, y: number, prom: (prom: "Q" | "R" | "N" | "B") => void, color: "w" | "b" }) {
-  return (
-    <main className={"absolute top-0 left-0 w-24 h-24 z-50 overflow-y-scroll overflow-x-hidden border-2 chessPlate" + ((y + x) % 2 == 0 ? "-dark" : "")}>
-      <div className="flex flex-col justify-center items-center ">
-        <PieceIcon name="queen" className="cursor-pointer" color={color} onClick={() => { prom("Q") }} />
-        <PieceIcon name="rook" className="cursor-pointer" color={color} onClick={() => { prom("R") }} />
-        <PieceIcon name="knight" className="cursor-pointer" color={color} onClick={() => { prom("N") }} />
-        <PieceIcon name="bishop" className="cursor-pointer" color={color} onClick={() => { prom("B") }} />
-      </div>
-    </main>
-  )
-}
 
-export function UserPanel({ board, color, value, user, icon, time }: { board: Board, color: "b" | "w", value: string, user: string, icon: string, time: { w: number, b: number } }) {
-  return (
-    <div className="flex xl:w-[48rem] lg:w-[32rem] md:w-[24rem] sm:w-[16rem] items-center justify-between gap-2">
-      <div className="flex gap-2 items-center">
-        <div className="flex border border-gray-500 rounded-md w-10 h-10 pt-2 bg-gray-300 ">
-          <Image src={"images/" + icon + ".svg"} alt={user} width={100} height={100}></Image>
-        </div>
-        <div className="flex flex-col">
-          <div>{user} ({parseInt(board.level) * 150})</div>
-          <hr />
-          <div className="flex items-center h-4">
-            {
-              Object.keys(board.missingPieces.missingPieces).map((piece, index) => {
-                return (
-                  <div key={index} className="flex">
-                    {
-                      board.missingPieces.missingPieces[piece].color == color &&
-                      board.missingPieces.missingPieces[piece].number.length > 0 &&
-                      board.missingPieces.missingPieces[piece].number.split("").map((value: string, index: number) => {
-                        return <div className="w-4 h-4 relative" key={index}>
-                          <Image src={`/pieces/${board.missingPieces.missingPieces[piece].kind}-${board.missingPieces.missingPieces[piece].color}.svg`} alt={board.missingPieces.missingPieces[piece].kind} width={100} height={100} />
-                        </div>
-                      })
-                    }
-                  </div>
-                )
-              })
-            }
 
-            <span className="text-sm">{value}</span>
-          </div>
-        </div>
-      </div>
-      {/* <div className="grid grid-cols-8"><div className="w-24"></div><div className="w-24"></div><div className="w-24"></div><div className="w-24"></div><div className="w-24"></div><div className="w-24"></div><div className="w-24"></div><div className="w-24"></div></div> */}
-      <div className="flex gap-2 border border-gray-500 rounded-md w-20 h-10 text-lg bg-gray-300 justify-center items-center">
-        {
-          time[color] / 60 < 10 ? "0" + Math.floor(time[color] / 60) : Math.floor(time[color] / 60)
-        }
-        :
-        {
-          time[color] % 60 < 10 ? "0" + time[color] % 60 : time[color] % 60
-        }
-      </div>
-
-    </div>
-  )
-}

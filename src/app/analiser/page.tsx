@@ -9,6 +9,9 @@ import ArrowRight from "@/assets/arrow.right.icon.svg";
 import ArrowMaxLeft from "@/assets/arrow.max.left.icon.svg";
 import ArrowMaxRight from "@/assets/arrow.max.right.icon.svg";
 import { useRouter } from "next/navigation";
+import { UserPanel } from "../components/user.component";
+import ChessBoardWhite from "../components/white.chessboard";
+import ChessBoardBlack from "../components/black.chessboard";
 
 
 export default function Analizer() {
@@ -96,24 +99,28 @@ export default function Analizer() {
     const [moving, setMoving] = useState(0);
 
     function setBoard(move: number, max: number = 0) {
-        if (move == 1) {
-            board.chess.move(history.current[moving]);
-        } else if (move == -1) {
-            board.chess.undo();
-        }
-        setMoving(moving => moving + move);
-
-        if (max == 1) {
-            for (const it of history.current) {
-                board.chess.move(it);
+        try {
+            if (move == 1) {
+                board.chess.move(history.current[moving]);
+            } else if (move == -1) {
+                board.chess.undo();
             }
+            setMoving(moving => moving + move);
 
-            setMoving(moving => history.current.length);
-        } else if (max == -1) {
-            board.chess.reset();
-            setMoving(0);
+            if (max == 1) {
+                for (const it of history.current) {
+                    board.chess.move(it);
+                }
+
+                setMoving(moving => history.current.length);
+            } else if (max == -1) {
+                board.chess.reset();
+                setMoving(0);
+            }
+            board.setBoard(board.chess.board());
+        } catch (error) {
+
         }
-        board.setBoard(board.chess.board());
     }
 
     function getHeigh() {
@@ -146,29 +153,19 @@ export default function Analizer() {
                         <div className="bg-[#777] w-full" style={{ height: getHeigh() }}></div>
                     </main>
                     <main className="flex flex-col items-center justify-center gap-2">
-                        <UserPanel board={board} time={{ w: 600, b: 600 }} icon="robot" user="Stockfish" color="w" value={board.missingPieces.white > board.missingPieces.black ? "+" + (board.missingPieces.white - board.missingPieces.black) : ""} />
+                        <UserPanel board={board} level={true} time={{ w: 600, b: 600 }} icon="robot" user="Stockfish" color="w" value={board.missingPieces.white > board.missingPieces.black ? "+" + (board.missingPieces.white - board.missingPieces.black) : ""} />
 
-                        <div className="chessBoard border-2 border-black select-none">
-                            {
-                                board.chess_board.map((y, indexY) =>
-                                    <div className="grid grid-cols-8" key={indexY}>
-                                        {
-                                            board.chess_board[indexY].map((x, indexX) =>
-                                                <div className={"xl:w-24 xl:h-24 lg:w-16 lg:h-16 md:w-12 md:h-12 sm:w-8 sm:h-8 relative chessPlate" + ((indexY + indexX) % 2 == 0 ? "-dark" : "")} key={board.boardLabels[1][indexX] + board.boardLabels[0][indexY]} >
+                        {
+                            board.team == "w" &&
+                            <ChessBoardWhite board={board} reload={0} selectedStart={null} availableMoves={[]} prevMoves={{ from: "", to: "" }} check={undefined} startSelection={() => { }} move={() => { }} promote={() => { }} promotion={() => { }} />
+                        }
 
-                                                    <div className="relative z-10 cursor-pointer">
-                                                        {board.chess_board[indexY][indexX]?.getIcon()}
-                                                    </div>
+                        {
+                            board.team == "b" &&
+                            <ChessBoardBlack board={board} reload={0} selectedStart={null} availableMoves={[]} prevMoves={{ from: "", to: "" }} check={undefined} startSelection={() => { }} move={() => { }} promote={() => { }} promotion={() => { }} />
+                        }
 
-                                                </div>
-                                            )
-                                        }
-                                    </div>
-                                )
-                            }
-                        </div>
-
-                        <UserPanel board={board} time={{ w: 600, b: 600 }} icon="user" user="User" color="b" value={board.missingPieces.black > board.missingPieces.white ? "+" + (board.missingPieces.black - board.missingPieces.white) : ""} />
+                        <UserPanel board={board} level={false} time={{ w: 600, b: 600 }} icon="user" user="User" color="b" value={board.missingPieces.black > board.missingPieces.white ? "+" + (board.missingPieces.black - board.missingPieces.white) : ""} />
                     </main>
                     <main className="flex flex-col items-center justify-start gap-2 w-1/4 xl:h-[48rem] lg:h-[32rem] md:h-[24rem] sm:h-[16rem] border rounded-md overflow-hidden">
                         <div className="flex justify-between w-full px-5 pt-2">
@@ -229,52 +226,4 @@ export default function Analizer() {
             }
         </main>
     );
-}
-
-export function UserPanel({ board, color, value, user, icon, time }: { board: Board, color: "b" | "w", value: string, user: string, icon: string, time: { w: number, b: number } }) {
-    return (
-        <div className="flex xl:w-[48rem] lg:w-[32rem] md:w-[24rem] sm:w-[16rem] items-center justify-between gap-2">
-            <div className="flex gap-2 items-center">
-                <div className="flex border border-gray-500 rounded-md w-10 h-10 pt-2 bg-gray-300 ">
-                    <Image src={"images/" + icon + ".svg"} alt={user} width={100} height={100}></Image>
-                </div>
-                <div className="flex flex-col">
-                    <div>{user} ({parseInt(board.level) * 150})</div>
-                    <hr />
-                    <div className="flex items-center h-4">
-                        {
-                            Object.keys(board.missingPieces.missingPieces).map((piece, index) => {
-                                return (
-                                    <div key={index} className="flex">
-                                        {
-                                            board.missingPieces.missingPieces[piece].color == color &&
-                                            board.missingPieces.missingPieces[piece].number.length > 0 &&
-                                            board.missingPieces.missingPieces[piece].number.split("").map((value: string, index: number) => {
-                                                return <div className="w-4 h-4 relative" key={index}>
-                                                    <Image src={`/pieces/${board.missingPieces.missingPieces[piece].kind}-${board.missingPieces.missingPieces[piece].color}.svg`} alt={board.missingPieces.missingPieces[piece].kind} width={100} height={100} />
-                                                </div>
-                                            })
-                                        }
-                                    </div>
-                                )
-                            })
-                        }
-
-                        <span className="text-sm">{value}</span>
-                    </div>
-                </div>
-            </div>
-            {/* <div className="grid grid-cols-8"><div className="w-24"></div><div className="w-24"></div><div className="w-24"></div><div className="w-24"></div><div className="w-24"></div><div className="w-24"></div><div className="w-24"></div><div className="w-24"></div></div> */}
-            <div className="flex gap-2 border border-gray-500 rounded-md w-20 h-10 text-lg bg-gray-300 justify-center items-center">
-                {
-                    time[color] / 60 < 10 ? "0" + Math.floor(time[color] / 60) : Math.floor(time[color] / 60)
-                }
-                :
-                {
-                    time[color] % 60 < 10 ? "0" + time[color] % 60 : time[color] % 60
-                }
-            </div>
-
-        </div>
-    )
 }

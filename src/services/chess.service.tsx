@@ -4,10 +4,12 @@ import { Chess, Square, WHITE } from "chess.js";
 
 export default class Board {
 
-    chess_board: Array<Array<ChessPiece | null>> = [[],[],[],[],[],[],[],[]];
+    chess_board: Array<Array<ChessPiece | null>> = [[], [], [], [], [], [], [], []];
     boardLabels: Array<Array<string>> = [["a", "b", "c", "d", "e", "f", "g", "h"], ["8", "7", "6", "5", "4", "3", "2", "1"]];
 
     chess = new Chess();
+
+    time = { w: 600, b: 600 }
 
     depth = "1";
     level = "1";
@@ -82,6 +84,7 @@ export default class Board {
         try {
             this.chess.move(from + to);
             this.setBoard(this.chess.board());
+            this.saveGame();
             return this.checking();
         } catch (error) {
             console.log(error);
@@ -103,6 +106,7 @@ export default class Board {
                 }
                 this.chess.move(moves[index]);
                 this.setBoard(this.chess.board());
+                this.saveGame();
                 moved = true;
             } catch (error) {
                 index++;
@@ -202,6 +206,24 @@ export default class Board {
 
         return { missingPieces: tmp, black: blackCount, white: whiteCount };
 
+    }
+
+    saveGame() {
+        const saving = { fen: this.chess.fen(), history: this.chess.pgn(), time: this.time, level: this.level, depth: this.depth, team: this.team}
+        document.cookie = `chess=${JSON.stringify(saving)}; expires=Fri, 31 Dec 9999 23:59:59 GMT`;
+    }
+
+    loadGame(fen: string, history: string, time: { w: number, b: number }, level: string, depth: string, team: "w" | "b") {
+        this.chess.load(fen);
+        this.chess.loadPgn(history);
+        this.setBoard(this.chess.board());
+        this.level = level;
+        this.depth = depth;
+        this.team = team;
+        this.time = time;
+        if (this.chess.turn() != this.team) {
+            return "bot";
+        }
     }
 
 }

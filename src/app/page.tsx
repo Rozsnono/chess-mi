@@ -18,6 +18,10 @@ export default function Home() {
   const [depth, setDepth] = useState("1");
   const [team, setTeam] = useState("w");
 
+  function eraseCookie(c_name: string) {
+    document.cookie = c_name + "=;expires=" + new Date(0).toUTCString() + ";path=/";
+   }
+
   function startGame() {
     setStart(true);
     board.chess.reset();
@@ -26,6 +30,7 @@ export default function Home() {
     board.level = level;
     board.team = team;
     board.createBoard();
+    eraseCookie("chess");
     route.push("/chess");
   }
 
@@ -97,10 +102,10 @@ export default function Home() {
         </div>
 
         <div className="inline-flex rounded-md shadow-sm" role="group">
-          <button type="button" onClick={()=>{setTeam("w")}} className={"px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-s-lg " + (team === "w" ? "bg-green-500 text-white" : "hover:bg-gray-100 hover:text-green-700 focus:z-10 focus:ring-2 focus:ring-green-700 focus:text-green-700 ")}>
+          <button type="button" onClick={()=>{setTeam("w")}} className={"px-4 py-2 text-sm font-medium text-gray-900 border border-gray-200 rounded-s-lg " + (team === "w" ? "bg-green-500 text-white" : "hover:bg-gray-100 hover:text-green-700 focus:z-10 focus:ring-2 focus:ring-green-700 focus:text-green-700 ")}>
             White
           </button>
-          <button type="button" onClick={()=>{setTeam("b")}} className={"px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-e-lg " + (team === "b" ? "bg-green-500 text-white" : "hover:bg-gray-100 hover:text-green-700 focus:z-10 focus:ring-2 focus:ring-green-700 focus:text-green-700 ")}>
+          <button type="button" onClick={()=>{setTeam("b")}} className={"px-4 py-2 text-sm font-medium text-gray-900 border border-gray-200 rounded-e-lg " + (team === "b" ? "bg-green-500 text-white" : "hover:bg-gray-100 hover:text-green-700 focus:z-10 focus:ring-2 focus:ring-green-700 focus:text-green-700 ")}>
             Black
           </button>
         </div>
