@@ -18,7 +18,6 @@ export default class Board {
     constructor() {
         this.createBoard();
     }
-
     createBoard() {
         this.chess.reset();
         this.setBoard(this.chess.board());
@@ -39,6 +38,9 @@ export default class Board {
             }
             if (move.includes("=")) {
                 return { check: move.substring(0, 2), move: move, promotion: true };
+            }
+            if(move.includes("+") && move.length == 3){
+                return { check: move.substring(0, 2), move: move };
             }
             if (move.includes("x")) {
                 return { check: move.substring(2, 4), move: move };
@@ -91,7 +93,6 @@ export default class Board {
             return false;
         }
     }
-
 
     botMove(moves: string[]) {
         let moved = true;

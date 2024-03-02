@@ -26,7 +26,7 @@ export default function PieceIcon({piece, onClick, className}: {piece: ChessPiec
 
     return (
         <div ref={element} className="w-full h-full relative" onClick={onClick} draggable onDragStart={onDragStart} onDragEnd={onDragStop} >
-            <Image className={className} src={`/pieces/${piece.kind}-${piece.color}.svg`} alt={piece.kind as string} width={100} height={100} />
+            <Image className={className} src={`/pieces/${piece.kind.toLocaleLowerCase()}-${piece.color}.svg`} alt={piece.kind as string} width={100} height={100} />
         </div>
     )
 }

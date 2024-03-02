@@ -19,10 +19,10 @@ export default function ChessBoardBlack({ board, reload, selectedStart, availabl
                         {
                             board.chess_board[indexY].map((x, indexX) =>
                                 <div className={"2xl:w-24 2xl:h-24 xl:w-24 xl:h-24 lg:w-16 lg:h-16 md:w-12 md:h-12 sm:w-8 sm:h-8 relative chessPlate" + ((indexY + indexX) % 2 == 0 ? "-dark" : "")}
-                                    key={board.boardLabels[1][indexX] + board.boardLabels[0][indexY]} 
+                                    key={board.boardLabels[1][indexX] + board.boardLabels[0][indexY]}
                                     onMouseDown={() => { startSelection(x) }}
                                     onMouseUp={() => { prepareMove(indexX, indexY) }}
-                                    onDrop={() => { prepareMove(indexX, indexY) }} onDragOver={(e) => { e.preventDefault();}}
+                                    onDrop={() => { prepareMove(indexX, indexY) }} onDragOver={(e) => { e.preventDefault(); }}
                                 >
                                     {
                                         (indexY == 0) && <div className={"absolute top-0 left-1 rotate-180" + (board.team == "b" ? " " : "")}>{board.boardLabels[0][indexX].toUpperCase()}</div>
@@ -41,9 +41,15 @@ export default function ChessBoardBlack({ board, reload, selectedStart, availabl
                                     </div>
                                     {
                                         availableMoves.filter(move => move.check == board.boardLabels[0][indexX] + board.boardLabels[1][indexY]).length > 0 &&
-                                        <div className="absolute z-20 top-0 left-0 w-full h-full opacity-50 flex justify-center items-center hover cursor-pointer">
-                                            <div className="w-1/4 h-1/4 bg-gray-700 rounded-full gray"></div>
-                                        </div>
+                                        (board.chess_board[indexY][indexX] != null ?
+                                            <div className="absolute z-20 top-0 left-0 w-full h-full opacity-50 flex justify-center items-center hover cursor-pointer">
+                                                <div className="w-1/4 h-1/4 border-4 border-red-700 rounded-full red"></div>
+                                            </div> :
+                                            <div className="absolute z-20 top-0 left-0 w-full h-full opacity-50 flex justify-center items-center hover cursor-pointer">
+                                                <div className="w-1/4 h-1/4 bg-gray-700 rounded-full gray"></div>
+                                            </div>
+                                        )
+
                                     }
 
                                     {
@@ -53,7 +59,8 @@ export default function ChessBoardBlack({ board, reload, selectedStart, availabl
 
                                     {
                                         x?.kind.toLowerCase() == "king" && x.color == check &&
-                                        <div className="absolute top-0 left-0 w-full h-full opacity-20 flex justify-center items-center bg-red-700">
+                                        <div className="absolute top-0 left-0 w-full h-full opacity-30 flex justify-center items-center p-1">
+                                            <div className="check w-full h-full rounded-xl"></div>
                                         </div>
                                     }
 

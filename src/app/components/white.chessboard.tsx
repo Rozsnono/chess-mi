@@ -40,9 +40,15 @@ export default function ChessBoardWhite({ board, reload, selectedStart, availabl
                                     </div>
                                     {
                                         availableMoves.filter(move => move.check == board.boardLabels[0][indexX] + board.boardLabels[1][indexY]).length > 0 &&
-                                        <div className="absolute z-20 top-0 left-0 w-full h-full opacity-50 flex justify-center items-center hover cursor-pointer">
-                                            <div className="w-1/4 h-1/4 bg-gray-700 rounded-full gray"></div>
-                                        </div>
+                                        (board.chess_board[indexY][indexX] != null ?
+                                            <div className="absolute z-20 top-0 left-0 w-full h-full opacity-50 flex justify-center items-center hover cursor-pointer">
+                                                <div className="w-1/4 h-1/4 border-4 border-red-700 rounded-full red"></div>
+                                            </div> :
+                                            <div className="absolute z-20 top-0 left-0 w-full h-full opacity-50 flex justify-center items-center hover cursor-pointer">
+                                                <div className="w-1/4 h-1/4 bg-gray-700 rounded-full gray"></div>
+                                            </div>
+                                        )
+
                                     }
 
                                     {
@@ -53,7 +59,7 @@ export default function ChessBoardWhite({ board, reload, selectedStart, availabl
                                     {
                                         x?.kind.toLowerCase() == "king" && x.color == check &&
                                         <div className="absolute top-0 left-0 w-full h-full opacity-30 flex justify-center items-center p-1">
-                                            <div className="check w-full h-full"></div>
+                                            <div className="check w-full h-full rounded-xl"></div>
                                         </div>
                                     }
 
