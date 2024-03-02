@@ -87,20 +87,19 @@ export default class Board {
             this.saveGame();
             return this.checking();
         } catch (error) {
-            console.log(error);
+            console.error(error);
             return false;
         }
     }
 
 
     botMove(moves: string[]) {
-        console.log(moves);
         let moved = true;
         let index = 0;
         do {
             try {
                 if (this.chess.history({ verbose: true }).slice(-3).filter((move, index) => index % 2 == 1 && move.to == moves[index].substring(2, 4) && move.from == moves[index].substring(0, 2)).length > 0) {
-                    console.log("repeated move")
+                    console.error("repeated move")
                     index++;
                     continue;
                 }
@@ -110,7 +109,7 @@ export default class Board {
                 moved = true;
             } catch (error) {
                 index++;
-                console.log(error);
+                console.error(error);
             }
         } while (!moved);
         return this.checking();
@@ -243,11 +242,5 @@ export class ChessPiece {
         }
         this.color = color;
         this.square = square;
-    }
-
-    getIcon() {
-        return (
-            <PieceIcon name={this.kind.toLocaleLowerCase()} color={this.color} />
-        )
     }
 }

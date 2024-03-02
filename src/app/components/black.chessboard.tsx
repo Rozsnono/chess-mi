@@ -2,9 +2,15 @@
 import Board, { ChessPiece } from "@/services/chess.service";
 import { Square } from "chess.js";
 import Promotion from "./promotion.component";
+import PieceIcon from "@/assets/pieces/icon";
 
 
 export default function ChessBoardBlack({ board, reload, selectedStart, availableMoves, prevMoves, check, startSelection, move, promote, promotion }: { board: Board, reload: number, selectedStart: Square | null, availableMoves: Array<any>, prevMoves: { from: string, to: string }, check: "w" | "b" | undefined, startSelection: (chessPiece: ChessPiece | null) => void, move: (move: any, square: Square) => void, promote: any | null, promotion: (square: Square, prom: "Q" | "R" | "N" | "B") => void }) {
+
+    function prepareMove(indexX: number, indexY: number) {
+        move(availableMoves.filter(move => move.check == board.boardLabels[0][indexX].toLocaleLowerCase() + board.boardLabels[1][indexY])[0], board.boardLabels[0][indexX].toLocaleLowerCase() + board.boardLabels[1][indexY] as Square);
+    }
+
     return (
         <div className={"chessBoard border-2 border-black select-none rotate-180"} key={reload}>
             {
@@ -12,7 +18,12 @@ export default function ChessBoardBlack({ board, reload, selectedStart, availabl
                     <div className="grid grid-cols-8" key={indexY}>
                         {
                             board.chess_board[indexY].map((x, indexX) =>
-                                <div className={"2xl:w-24 2xl:h-24 xl:w-24 xl:h-24 lg:w-16 lg:h-16 md:w-12 md:h-12 sm:w-8 sm:h-8 relative chessPlate" + ((indexY + indexX) % 2 == 0 ? "-dark" : "")} key={board.boardLabels[1][indexX] + board.boardLabels[0][indexY]} onMouseDown={() => { startSelection(x) }} onMouseUp={() => { move(availableMoves.filter(move => move.check == board.boardLabels[0][indexX].toLocaleLowerCase() + board.boardLabels[1][indexY])[0], board.boardLabels[0][indexX].toLocaleLowerCase() + board.boardLabels[1][indexY] as Square) }}>
+                                <div className={"2xl:w-24 2xl:h-24 xl:w-24 xl:h-24 lg:w-16 lg:h-16 md:w-12 md:h-12 sm:w-8 sm:h-8 relative chessPlate" + ((indexY + indexX) % 2 == 0 ? "-dark" : "")}
+                                    key={board.boardLabels[1][indexX] + board.boardLabels[0][indexY]} 
+                                    onMouseDown={() => { startSelection(x) }}
+                                    onMouseUp={() => { prepareMove(indexX, indexY) }}
+                                    onDrop={() => { prepareMove(indexX, indexY) }} onDragOver={(e) => { e.preventDefault();}}
+                                >
                                     {
                                         (indexY == 0) && <div className={"absolute top-0 left-1 rotate-180" + (board.team == "b" ? " " : "")}>{board.boardLabels[0][indexX].toUpperCase()}</div>
                                     }
@@ -25,8 +36,8 @@ export default function ChessBoardBlack({ board, reload, selectedStart, availabl
                                         <div className="absolute top-0 left-0 w-full h-full bg-blue-700 opacity-20"></div>
                                     }
 
-                                    <div className={"relative z-10 cursor-pointer rotate-180" + (board.team == "b" ? " " : "")}>
-                                        {board.chess_board[indexY][indexX]?.getIcon()}
+                                    <div className={"relative z-10 cursor-pointer cursor-grab" + (board.team == "b" ? " rotate-180" : "")} >
+                                        <PieceIcon piece={board.chess_board[indexY][indexX]} />
                                     </div>
                                     {
                                         availableMoves.filter(move => move.check == board.boardLabels[0][indexX] + board.boardLabels[1][indexY]).length > 0 &&

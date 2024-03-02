@@ -77,3 +77,14 @@ body{
   background-color: #b00;
   transition: 0.3s;
 }
+
+.check{
+  border: 5px solid #f00;
+  box-shadow: 0 4px 8px 0 rgba(255,0,0,0.4);
+  animation: border-width 2s infinite linear;
+}
+@keyframes border-width {
+  0% {border-width: 5px;}
+  50% {border-width: 10px;}
+  100% {border-width: 5px;}
+}

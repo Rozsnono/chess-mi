@@ -41,7 +41,6 @@ export default function Analizer() {
                 evaler.postMessage('ucinewgame');
                 evaler.postMessage('setoption name Skill Level value 20');
             }
-            console.log(progressRef.current)
             if (progressRef.current < 99) {
                 let score = "";
                 if (event.data.includes("info depth 5")) {
@@ -92,16 +91,14 @@ export default function Analizer() {
             setProgess(progess => progess + 100 / history.current.length);
             progressRef.current = progressRef.current + 100 / history.current.length;
             let moves = board.chess.move(history.current[index.current]);
-            console.log("position fen ");
             evaler.postMessage("position fen " + board.chess.fen());
             evaler.postMessage("go depth 5");
-            console.log("asd")
             // evaler.postMessage("eval");
             index.current++;
         } catch (error) {
             board.chess.reset();
             board.setBoard(board.chess.board());
-            console.log(error)
+            console.error(error)
             // board.chess.load(fen.current);
         }
     }
@@ -127,12 +124,11 @@ export default function Analizer() {
                 setMoving(moving => history.current.length);
             } else if (max == -1) {
                 board.chess.reset();
-                console.log(history.current)
                 setMoving(0);
             }
             board.setBoard(board.chess.board());
         } catch (error) {
-            console.log(error)
+            console.error(error)
         }
     }
 

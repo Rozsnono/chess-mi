@@ -17,6 +17,7 @@ export default function Home() {
   const { board, stockfish } = useContext(BoardContext);
 
   const [reload, setReload] = useState(0);
+  const audioRef = useRef<HTMLAudioElement>(null);
 
   const [selectedStart, setSelectedStart] = useState<Square | null>(null);
   const [prevMoves, setPrevMoves] = useState({ from: "", to: "" });
@@ -86,7 +87,7 @@ export default function Home() {
 
           stockfish.postMessage("position fen " + board.chess.fen() + " moves " + board.chess.history().join(" "));
           stockfish.postMessage("go depth " + board.depth);
-          
+
         }
         StartTimer(true);
       }
@@ -108,11 +109,12 @@ export default function Home() {
 
       const history = board.chess.history({ verbose: true });
       setPrevMoves({ from: history[history.length - 1].from, to: history[history.length - 1].to });
+      audioRef.current?.play();
+
     } else if (res != undefined) {
       onEnd();
       setEnd(true);
       endRef.current = true;
-      console.log("End");
 
     }
   }
@@ -127,7 +129,7 @@ export default function Home() {
   function startSelection(piece: ChessPiece | null, newPiece?: boolean) {
     if (piece == null) return;
     if (end) return;
-    if (selectedStart == null || newPiece) {
+    if (selectedStart == null || newPiece || board.getPieceByLabel(selectedStart)?.color == piece.color) {
       setSelectedStart(piece.square);
       setAvailableMoves(board.getAvailableMoves(piece.square, piece.type));
     }
@@ -156,12 +158,14 @@ export default function Home() {
       const history = board.chess.history({ verbose: true });
       setPrevMoves({ from: history[history.length - 1].from, to: history[history.length - 1].to });
 
+      audioRef.current?.play();
+
       stockfish.postMessage("position fen " + board.chess.fen() + " moves " + board.chess.history().join(" "));
       stockfish.postMessage("go depth " + board.depth);
 
       StartTimer();
     } else {
-      console.log("Invalid move", move.move);
+      console.error("Invalid move", move.move);
       startSelection(board.getPieceByLabel(square), true);
     }
   }
@@ -180,7 +184,7 @@ export default function Home() {
         board.time = timeRef.current;
         setTime(timeRef.current);
         board.saveGame();
-        if (timeRef.current.w == 0 || timeRef.current.b == 0) {
+        if (timeRef.current.w <= 0 || timeRef.current.b <= 0) {
           setEnd(true);
         }
       }
@@ -212,7 +216,7 @@ export default function Home() {
           <div className="border rounded-lg p-10 bg-white">
             <h1 className="text-2xl text-center">Game Over</h1>
             <h2 className="text-md text-center">You have lost</h2>
-            <hr className="my-2"/>
+            <hr className="my-2" />
             <div className="flex items-center gap-1">
               <Link href={"/"} className="border p-1 px-2 rounded-lg border-gray-400 hover:bg-gray-200 duration-100">New Game</Link>
               <Link href={"/analiser"} className="border p-1 px-2 rounded-lg border-gray-400 hover:bg-gray-200 duration-100">Analize</Link>
@@ -224,6 +228,10 @@ export default function Home() {
       <main className="flex flex-col items-center justify-center gap-2">
         <UserPanel board={board} time={time} level={true} icon="robot" user="Stockfish" color={"w"} value={board.missingPieces.white > board.missingPieces.black ? "+" + (board.missingPieces.white - board.missingPieces.black) : ""} />
 
+        <audio ref={audioRef}>
+          <source src={"/soundeffects/move.mp3"} type='audio/mp3' />
+          Your browser does not support the audio element.
+        </audio>
         {
           board.team == "w" &&
           <ChessBoardWhite board={board} reload={reload} selectedStart={selectedStart} availableMoves={availableMoves} prevMoves={prevMoves} check={check} startSelection={startSelection} move={move} promote={promote} promotion={promotion} />
