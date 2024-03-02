@@ -1,7 +1,5 @@
 "use client";
 import { useContext, useState } from "react";
-import ChessBoard from "./chess/page";
-import Link from "next/link";
 import { BoardContext } from "@/services/context";
 import { useRouter } from "next/navigation";
 

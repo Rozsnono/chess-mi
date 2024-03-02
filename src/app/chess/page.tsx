@@ -1,17 +1,16 @@
 "use client";
-import PieceIcon from "@/assets/pieces/icon";
 import { BoardContext } from "@/services/context";
 import Image from "next/image";
-import { LegacyRef, use, useContext, useEffect, useReducer, useRef, useState } from "react";
-import { Chess, Square } from "chess.js";
-import Board, { ChessPiece } from "@/services/chess.service";
+import { useContext, useEffect, useRef, useState } from "react";
+import { Square } from "chess.js";
+import { ChessPiece } from "@/services/chess.service";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { UserPanel } from "../components/user.component";
-import ChessBoard from "../components/white.chessboard";
 import ChessBoardWhite from "../components/white.chessboard";
 import ChessBoardBlack from "../components/black.chessboard";
-
+import FlagIcon from "@/assets/flag.icon.svg";
+import PlusIcon from "@/assets/plus.icon.svg";
 
 export default function Home() {
 
@@ -32,9 +31,6 @@ export default function Home() {
   const otherMoves = useRef([] as string[]);
   const [end, setEnd] = useState(false);
   const endRef = useRef(false);
-
-
-  const route = useRouter();
 
   function getCookie(name: string) {
     var nameEQ = name + "=";
@@ -87,8 +83,10 @@ export default function Home() {
         timeRef.current = board.time;
         setReload(reload + 1);
         if (response) {
+
           stockfish.postMessage("position fen " + board.chess.fen() + " moves " + board.chess.history().join(" "));
           stockfish.postMessage("go depth " + board.depth);
+          
         }
         StartTimer(true);
       }
@@ -155,8 +153,12 @@ export default function Home() {
       setAvailableMoves([]);
       setSelectedStart(null);
       board.saveGame();
+      const history = board.chess.history({ verbose: true });
+      setPrevMoves({ from: history[history.length - 1].from, to: history[history.length - 1].to });
+
       stockfish.postMessage("position fen " + board.chess.fen() + " moves " + board.chess.history().join(" "));
       stockfish.postMessage("go depth " + board.depth);
+
       StartTimer();
     } else {
       console.log("Invalid move", move.move);
@@ -208,7 +210,13 @@ export default function Home() {
         end &&
         <main className="absolute w-screen min-h-screen bg-[#00000050] flex justify-center items-center z-50">
           <div className="border rounded-lg p-10 bg-white">
-            <Link href={"/analiser"}>Analize</Link>
+            <h1 className="text-2xl text-center">Game Over</h1>
+            <h2 className="text-md text-center">You have lost</h2>
+            <hr className="my-2"/>
+            <div className="flex items-center gap-1">
+              <Link href={"/"} className="border p-1 px-2 rounded-lg border-gray-400 hover:bg-gray-200 duration-100">New Game</Link>
+              <Link href={"/analiser"} className="border p-1 px-2 rounded-lg border-gray-400 hover:bg-gray-200 duration-100">Analize</Link>
+            </div>
           </div>
         </main>
       }
@@ -276,9 +284,15 @@ export default function Home() {
             </div>
           })}
         </div>
-        <div className="p-2">
-
-          <button className="border rounded-lg p-2 px-4 border-gray-400 hover:bg-gray-500 hover:text-white duration-100" onClick={() => { setEnd(true) }}>Surrender</button>
+        <div className="p-2 flex items-center gap-2">
+          <Link className="z-50" href={"/"}>
+            <button className="border rounded-lg p-2 px-4 border-gray-400 hover:bg-gray-200 hover:text-white duration-100">
+              <Image src={PlusIcon} width={18} height={18} alt="" className="cursor-pointer"></Image>
+            </button>
+          </Link>
+          <button className="border rounded-lg p-2 px-4 border-gray-400 hover:bg-gray-200 hover:text-white duration-100" onClick={() => { setEnd(true) }}>
+            <Image src={FlagIcon} height={18} width={18} alt="Surrender"></Image>
+          </button>
 
         </div>
       </main>

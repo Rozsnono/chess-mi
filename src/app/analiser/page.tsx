@@ -1,5 +1,4 @@
 "use client";
-import Board from "@/services/chess.service";
 import { BoardContext } from "@/services/context";
 import Image from "next/image";
 import { useContext, useEffect, useRef, useState } from "react";
@@ -8,6 +7,7 @@ import ArrowLeft from "@/assets/arrow.left.icon.svg";
 import ArrowRight from "@/assets/arrow.right.icon.svg";
 import ArrowMaxLeft from "@/assets/arrow.max.left.icon.svg";
 import ArrowMaxRight from "@/assets/arrow.max.right.icon.svg";
+import PlusIcon from "@/assets/plus.icon.svg";
 import { useRouter } from "next/navigation";
 import { UserPanel } from "../components/user.component";
 import ChessBoardWhite from "../components/white.chessboard";
@@ -19,8 +19,9 @@ export default function Analizer() {
 
     const { board, evaler } = useContext(BoardContext);
     const fen = useRef(board.chess.fen());
-    // const history = useRef(board.chess.history());
-    const history = useRef(['e4', 'e5', 'f4', 'Nf6', 'fxe5', 'Nxe4', 'Nf3', 'd5', 'Nd4', 'Qg5', 'h4', 'Qg3+', 'Ke2', 'Bg4+', 'Nf3', 'Nd7', 'Ke3', 'O-O-O', 'Qe2', 'Nec5', 'Qf2', 'd4+', 'Ke2', 'Qf4', 'Qe3', 'dxe3', 'dxe3', 'Qa4', 'b3', 'Qb4', 'c3', 'Qe4', 'Kd2', 'Bf5', 'Nd4', 'Nxe5', 'Bd3', 'Qxg2+', 'Ke1', 'Ncxd3+', 'Kd1', 'Bg4+', 'Ne2', 'Nb4+', 'Ke1']);
+    const history = useRef(board.chess.history());
+    const pgn = useRef(board.chess.pgn());
+    // const history = useRef(['e4', 'e5', 'f4', 'Nf6', 'fxe5', 'Nxe4', 'Nf3', 'd5', 'Nd4', 'Qg5', 'h4', 'Qg3+', 'Ke2', 'Bg4+', 'Nf3', 'Nd7', 'Ke3', 'O-O-O', 'Qe2', 'Nec5', 'Qf2', 'd4+', 'Ke2', 'Qf4', 'Qe3', 'dxe3', 'dxe3', 'Qa4', 'b3', 'Qb4', 'c3', 'Qe4', 'Kd2', 'Bf5', 'Nd4', 'Nxe5', 'Bd3', 'Qxg2+', 'Ke1', 'Ncxd3+', 'Kd1', 'Bg4+', 'Ne2', 'Nb4+', 'Ke1']);
 
     const route = useRouter();
 
@@ -64,17 +65,6 @@ export default function Analizer() {
         };
     }, []);
 
-    function get_moves() {
-        var moves = '';
-        var history = board.chess.history({ verbose: true });
-
-        for (var i = 0; i < history.length; ++i) {
-            var move = history[i];
-            moves += ' ' + move.from + move.to + (move.promotion ? move.promotion : '');
-        }
-
-        return moves;
-    }
 
     function mapNumber(inputNumber: number) {
         if (inputNumber === 0) return 0;
@@ -162,7 +152,7 @@ export default function Analizer() {
     }
 
     function getMoves() {
-        return board.chess.pgn().split(/\b\d+\b\./).filter((value) => { return value != "" }).map(value => { return value.trim() });
+        return pgn.current.split(/\b\d+\b\./).filter((value) => { return value != "" }).map(value => { return value.trim() });
     }
 
     return (
@@ -220,7 +210,7 @@ export default function Analizer() {
                                         {index + 1}.
                                     </div>
 
-                                    <div className="flex justify-start items-center w-16">
+                                    <div className={"flex justify-start items-center w-16" + (history.current[moving - 1] == move.split(" ")[0] && (index * 2 == moving - 1) ? " underline" : "")}>
                                         {
                                             board.getPieceByType(move.split(" ")[0][0].toLocaleLowerCase()) != "pawn" && move.split(" ")[0].length > 2 &&
                                             <Image src={`/pieces/${board.getPieceByType(move.split(" ")[0][0].toLocaleLowerCase())}-${"w"}.svg`} alt={board.getPieceByType(move.split(" ")[0][0].toLocaleLowerCase())} width={20} height={20} />
@@ -233,7 +223,7 @@ export default function Analizer() {
                                     </div>
                                     {
                                         move.split(" ").length > 1 &&
-                                        <div className="flex justify-start items-center w-16">
+                                        <div className={"flex justify-start items-center w-16" + (history.current[moving - 1] == move.split(" ")[1] && (index * 2 + 1 == moving - 1) ? " underline" : "")}>
                                             {
                                                 board.getPieceByType(move.split(" ")[1][0].toLocaleLowerCase()) != "pawn" && move.split(" ")[1].length > 2 &&
                                                 <Image src={`/pieces/${board.getPieceByType(move.split(" ")[1][0].toLocaleLowerCase())}-${"b"}.svg`} alt={board.getPieceByType(move.split(" ")[1][0].toLocaleLowerCase())} width={20} height={20} />
@@ -250,12 +240,16 @@ export default function Analizer() {
                             })}
                         </div>
                         <div className="flex items-center justify-between w-full relative px-2 p-1">
-                            <Link className="z-50" href={"/"}><button className="border rounded-lg p-2 px-4 border-gray-400 hover:bg-gray-500 hover:text-white duration-100">New Game</button></Link>
+                            <Link className="z-50" href={"/"}>
+                                <button className="rounded-lg p-1 hover:bg-gray-200 hover:text-white duration-100">
+                                    <Image src={PlusIcon} width={32} height={32} alt="" className="cursor-pointer"></Image>
+                                </button>
+                            </Link>
                             <div className="flex items-center absolute w-full justify-center z-40">
-                                <Image src={ArrowMaxLeft} width={32} height={32} alt="" className="cursor-pointer" onClick={() => { setBoard(0, -1) }}></Image>
-                                <Image src={ArrowLeft} width={32} height={32} alt="" onClick={() => { setBoard(-1) }} className="cursor-pointer"></Image>
-                                <Image src={ArrowRight} width={32} height={32} alt="" onClick={() => { setBoard(1) }} className="cursor-pointer"></Image>
-                                <Image src={ArrowMaxRight} width={32} height={32} alt="" className="cursor-pointer" onClick={() => { setBoard(0, 1) }}></Image>
+                                <Image src={ArrowMaxLeft} width={32} height={32} alt="" className="cursor-pointer hover:bg-gray-200 duration-100 rounded-lg" onClick={() => { setBoard(0, -1) }}></Image>
+                                <Image src={ArrowLeft} width={32} height={32} alt="" onClick={() => { setBoard(-1) }} className="cursor-pointer hover:bg-gray-200 duration-100 rounded-lg"></Image>
+                                <Image src={ArrowRight} width={32} height={32} alt="" onClick={() => { setBoard(1) }} className="cursor-pointer hover:bg-gray-200 duration-100 rounded-lg"></Image>
+                                <Image src={ArrowMaxRight} width={32} height={32} alt="" className="cursor-pointer hover:bg-gray-200 duration-100 rounded-lg" onClick={() => { setBoard(0, 1) }}></Image>
                             </div>
 
                         </div>
