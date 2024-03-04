@@ -18,10 +18,9 @@ import Link from "next/link";
 export default function Analizer() {
 
     const { board, evaler } = useContext(BoardContext);
-    const fen = useRef(board.chess.fen());
-    const history = useRef(board.chess.history());
+    // const history = useRef(board.chess.history());
     const pgn = useRef(board.chess.pgn());
-    // const history = useRef(['e4', 'e5', 'f4', 'Nf6', 'fxe5', 'Nxe4', 'Nf3', 'd5', 'Nd4', 'Qg5', 'h4', 'Qg3+', 'Ke2', 'Bg4+', 'Nf3', 'Nd7', 'Ke3', 'O-O-O', 'Qe2', 'Nec5', 'Qf2', 'd4+', 'Ke2', 'Qf4', 'Qe3', 'dxe3', 'dxe3', 'Qa4', 'b3', 'Qb4', 'c3', 'Qe4', 'Kd2', 'Bf5', 'Nd4', 'Nxe5', 'Bd3', 'Qxg2+', 'Ke1', 'Ncxd3+', 'Kd1', 'Bg4+', 'Ne2', 'Nb4+', 'Ke1']);
+    const history = useRef(['e4', 'e5', 'f4', 'Nf6', 'fxe5', 'Nxe4', 'Nf3', 'd5', 'Nd4', 'Qg5', 'h4', 'Qg3+', 'Ke2', 'Bg4+', 'Nf3', 'Nd7', 'Ke3', 'O-O-O', 'Qe2', 'Nec5', 'Qf2', 'd4+', 'Ke2', 'Qf4', 'Qe3', 'dxe3', 'dxe3', 'Qa4', 'b3', 'Qb4', 'c3', 'Qe4', 'Kd2', 'Bf5', 'Nd4', 'Nxe5', 'Bd3', 'Qxg2+', 'Ke1', 'Ncxd3+', 'Kd1', 'Bg4+', 'Ne2', 'Nb4+', 'Ke1']);
 
     const route = useRouter();
 
@@ -48,10 +47,6 @@ export default function Analizer() {
                     moves.current.push(score);
                     analize();
                 }
-                // if (event.data.includes("Total Evaluation:")) {
-                //     score = event.data.split("Total Evaluation:")[1].split("(")[0].trim();
-
-                // }
 
             }
             else {
@@ -169,8 +164,10 @@ export default function Analizer() {
             {
                 progess >= 100 - 1 &&
                 <>
-                    <main className={"flex flex-col items-center justify-start gap-2 w-5 2xl:h-[48rem] xl:h-[32rem] lg:h-[32rem] md:h-[24rem] sm:h-[16rem] border rounded-md overflow-hidden" + (board.team == "w" ? "" : " rotate-180")}>
-                        <div className="bg-[#777] w-full" style={{ height: getHeigh() }}></div>
+                    <main className={"flex flex-col relative items-center justify-center gap-2 w-5 2xl:h-[48rem] xl:h-[32rem] lg:h-[32rem] md:h-[24rem] sm:h-[16rem] border rounded-md " + (board.team == "w" ? "" : " rotate-180")}>
+                        <div className="w-full h-full overflow-hidden rounded-md">
+                            <div className="bg-[#777] w-full" style={{ height: getHeigh() }}></div>
+                        </div>
                     </main>
                     <main className="flex flex-col items-center justify-center gap-2">
                         <UserPanel board={board} level={true} time={{ w: 600, b: 600 }} icon="robot" user="Stockfish" color="w" value={board.missingPieces.white > board.missingPieces.black ? "+" + (board.missingPieces.white - board.missingPieces.black) : ""} />
