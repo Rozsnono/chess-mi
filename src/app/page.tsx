@@ -116,29 +116,4 @@ export default function Home() {
       </div>
     </div>
   )
-
-  return (
-    <div className="flex flex-col gap-2 justify-center items-center w-screen h-screen">
-      <div className="flex flex-col gap-2 border rounded-lg p-6 px-12 border-gray-500 justify-center items-center">
-        <h1 className="text-2xl">Chess-MI</h1>
-        <hr />
-        <p>Play chess with a computer</p>
-
-
-        <div className="inline-flex rounded-md shadow-sm" role="group">
-          <button type="button" onClick={() => { setTeam("w") }} className={"px-4 py-2 text-sm font-medium text-gray-900 border border-gray-200 rounded-s-lg " + (team === "w" ? "bg-green-500 text-white" : "hover:bg-gray-100 hover:text-green-700 focus:z-10 focus:ring-2 focus:ring-green-700 focus:text-green-700 ")}>
-            White
-          </button>
-          <button type="button" onClick={() => { setTeam("b") }} className={"px-4 py-2 text-sm font-medium text-gray-900 border border-gray-200 rounded-e-lg " + (team === "b" ? "bg-green-500 text-white" : "hover:bg-gray-100 hover:text-green-700 focus:z-10 focus:ring-2 focus:ring-green-700 focus:text-green-700 ")}>
-            Black
-          </button>
-        </div>
-
-
-        <button onClick={startGame} className="p-1 px-4 bg-green-800 rounded-lg text-white">Play</button>
-      </div>
-
-
-    </div>
-  )
 }

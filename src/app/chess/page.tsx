@@ -11,6 +11,7 @@ import ChessBoardWhite from "../components/white.chessboard";
 import ChessBoardBlack from "../components/black.chessboard";
 import FlagIcon from "@/assets/flag.icon.svg";
 import PlusIcon from "@/assets/plus.icon.svg";
+import End from "../components/end.component";
 
 export default function Home() {
 
@@ -83,13 +84,27 @@ export default function Home() {
         setTime(board.time);
         timeRef.current = board.time;
         setReload(reload + 1);
-        if (response) {
+        if (response == "bot") {
 
           stockfish.postMessage("position fen " + board.chess.fen() + " moves " + board.chess.history().join(" "));
           stockfish.postMessage("go depth " + board.depth);
 
+        } else {
+
+          setCheck(undefined);
+          if (response == "check") {
+            setCheck(board.turn);
+          } else if (response != "none") {
+            endRef.current = true;
+            setEnd(true);
+          }
+          setReload(reload + 1);
+          setAvailableMoves([]);
+          setSelectedStart(null);
+
         }
         StartTimer(true);
+
       }
     }
   }, []);
@@ -139,10 +154,10 @@ export default function Home() {
     if (end) return;
     if (selectedStart == null || square == undefined) return;
     if (selectedStart == square) return;
-    if (move == undefined) { return; }; 
+    if (move == undefined) { return; };
     if (move.promotion) { setPromote({ square: square, color: board.getPieceByLabel(selectedStart)?.color }); return; }
     // if (board.getPieceByLabel(square) != null && board.getPieceByLabel(square)?.color == board.getPieceByLabel(selectedStart)?.color) { startSelection(board.getPieceByLabel(square), true); return; };
-    if(board.getPieceByLabel(selectedStart)?.color != board.turn) return;
+    if (board.getPieceByLabel(selectedStart)?.color != board.turn) return;
     const res = board.move(selectedStart, square);
     if (res) {
       setCheck(undefined);
@@ -204,6 +219,8 @@ export default function Home() {
     }
   }
 
+  const [surr, setSurr] = useState(false);
+
   function getMoves() {
     return board.chess.pgn().split(/\b\d+\b\./).filter((value) => { return value != "" }).map(value => { return value.trim() });
   }
@@ -213,17 +230,7 @@ export default function Home() {
 
       {
         end &&
-        <main className="absolute w-screen min-h-screen bg-[#00000050] flex justify-center items-center z-50">
-          <div className="border rounded-lg p-10 bg-white">
-            <h1 className="text-2xl text-center">Game Over</h1>
-            <h2 className="text-md text-center">You have lost</h2>
-            <hr className="my-2" />
-            <div className="flex items-center gap-1">
-              <Link href={"/"} className="border p-1 px-2 rounded-lg border-gray-400 hover:bg-gray-200 duration-100">New Game</Link>
-              <Link href={"/analiser"} className="border p-1 px-2 rounded-lg border-gray-400 hover:bg-gray-200 duration-100">Analize</Link>
-            </div>
-          </div>
-        </main>
+        <End />
       }
 
       <main className="flex flex-col items-center justify-center gap-2">
@@ -299,8 +306,11 @@ export default function Home() {
               <Image src={PlusIcon} width={18} height={18} alt="" className="cursor-pointer"></Image>
             </button>
           </Link>
-          <button className="border rounded-lg p-2 px-4 border-gray-400 hover:bg-gray-200 hover:text-white duration-100" onClick={() => { setEnd(true) }}>
-            <Image src={FlagIcon} height={18} width={18} alt="Surrender"></Image>
+          <button className="border rounded-lg p-2 px-4 border-gray-400 hover:bg-gray-200 text-sm duration-100" onClick={() => { if (surr) { setEnd(true) } else { setSurr(true) } }}>
+            {
+              surr ? "Are you sure?" :
+                <Image src={FlagIcon} height={18} width={18} alt="Surrender"></Image>
+            }
           </button>
 
         </div>

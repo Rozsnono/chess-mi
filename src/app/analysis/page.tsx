@@ -18,9 +18,9 @@ import Link from "next/link";
 export default function Analizer() {
 
     const { board, evaler } = useContext(BoardContext);
-    // const history = useRef(board.chess.history());
+    const history = useRef(board.chess.history());
     const pgn = useRef(board.chess.pgn());
-    const history = useRef(['e4', 'e5', 'f4', 'Nf6', 'fxe5', 'Nxe4', 'Nf3', 'd5', 'Nd4', 'Qg5', 'h4', 'Qg3+', 'Ke2', 'Bg4+', 'Nf3', 'Nd7', 'Ke3', 'O-O-O', 'Qe2', 'Nec5', 'Qf2', 'd4+', 'Ke2', 'Qf4', 'Qe3', 'dxe3', 'dxe3', 'Qa4', 'b3', 'Qb4', 'c3', 'Qe4', 'Kd2', 'Bf5', 'Nd4', 'Nxe5', 'Bd3', 'Qxg2+', 'Ke1', 'Ncxd3+', 'Kd1', 'Bg4+', 'Ne2', 'Nb4+', 'Ke1']);
+    // const history = useRef(['e4', 'e5', 'f4', 'Nf6', 'fxe5', 'Nxe4', 'Nf3', 'd5', 'Nd4', 'Qg5', 'h4', 'Qg3+', 'Ke2', 'Bg4+', 'Nf3', 'Nd7', 'Ke3', 'O-O-O', 'Qe2', 'Nec5', 'Qf2', 'd4+', 'Ke2', 'Qf4', 'Qe3', 'dxe3', 'dxe3', 'Qa4', 'b3', 'Qb4', 'c3', 'Qe4', 'Kd2', 'Bf5', 'Nd4', 'Nxe5', 'Bd3', 'Qxg2+', 'Ke1', 'Ncxd3+', 'Kd1', 'Bg4+', 'Ne2', 'Nb4+', 'Ke1']);
 
     const route = useRouter();
 

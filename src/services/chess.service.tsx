@@ -223,6 +223,8 @@ export default class Board {
         this.time = time;
         if (this.chess.turn() != this.team) {
             return "bot";
+        }else{
+            return this.checking()
         }
     }
 
