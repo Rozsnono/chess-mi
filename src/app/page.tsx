@@ -2,6 +2,8 @@
 import { useContext, useState } from "react";
 import { BoardContext } from "@/services/context";
 import { useRouter } from "next/navigation";
+import PieceIcon from "@/assets/pieces/icon";
+import { ChessPiece } from "@/services/chess.service";
 
 export default function Home() {
 
@@ -18,7 +20,7 @@ export default function Home() {
 
   function eraseCookie(c_name: string) {
     document.cookie = c_name + "=;expires=" + new Date(0).toUTCString() + ";path=/";
-   }
+  }
 
   function startGame() {
     setStart(true);
@@ -33,14 +35,13 @@ export default function Home() {
   }
 
   return (
-    <div className="flex flex-col gap-2 justify-center items-center w-screen h-screen">
-      <div className="flex flex-col gap-2 border rounded-lg p-6 px-12 border-gray-500 justify-center items-center">
-        <h1 className="text-2xl">Chess-MI</h1>
-        <hr />
-        <p>Play chess with a computer</p>
+    <div className="flex justify-center items-center w-screen h-screen">
+      <div className="max-w-sm p-6 bg-white border border-gray-200 rounded-lg shadow text-center items-center flex flex-col gap-2">
+        <PieceIcon piece={new ChessPiece("KING", "w", "a1")} className="flex justify-center"></PieceIcon>
+        <h5 className="mb-2 text-2xl font-semibold tracking-tight text-gray-900 ">Play chess against Stockfish</h5>
         <div className="w-full mx-auto">
-          <label htmlFor="underline_select" className="block mb-2 text-sm font-medium text-gray-900">Select a level</label>
-          <select id="underline_select" onChange={(e) => { setLevel(e.target.value) }} className="block py-2.5 px-0 w-full text-sm text-gray-800 bg-transparent border-0 border-b-2 border-gray-200 appearance-none dark:text-gray-400 dark:border-gray-700 focus:outline-none focus:ring-0 focus:border-gray-200 peer">
+          <label htmlFor="underline_select" className="block mb-2 text-sm font-medium text-gray-900 ">Select depth</label>
+          <select id="underline_select" onChange={(e) => { setLevel(e.target.value) }} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
             <optgroup label="Easy">
               <option value="1">Beginner</option>
               <option value="3">Novice</option>
@@ -68,8 +69,8 @@ export default function Home() {
         </div>
 
         <div className="w-full mx-auto">
-          <label htmlFor="underline_select" className="block mb-2 text-sm font-medium text-gray-900">Select depth</label>
-          <select id="underline_select" onChange={(e) => { setDepth(e.target.value) }} className="block py-2.5 px-0 w-full text-sm text-gray-800 bg-transparent border-0 border-b-2 border-gray-200 appearance-none dark:text-gray-400 dark:border-gray-700 focus:outline-none focus:ring-0 focus:border-gray-200 peer">
+          <label htmlFor="underline_select" className="block mb-2 text-sm font-medium text-gray-900 ">Select depth</label>
+          <select id="underline_select" onChange={(e) => { setDepth(e.target.value) }} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
             <optgroup label="Fast response">
               <option value="1">depth 1</option>
               <option value="2">depth 2</option>
@@ -100,10 +101,35 @@ export default function Home() {
         </div>
 
         <div className="inline-flex rounded-md shadow-sm" role="group">
-          <button type="button" onClick={()=>{setTeam("w")}} className={"px-4 py-2 text-sm font-medium text-gray-900 border border-gray-200 rounded-s-lg " + (team === "w" ? "bg-green-500 text-white" : "hover:bg-gray-100 hover:text-green-700 focus:z-10 focus:ring-2 focus:ring-green-700 focus:text-green-700 ")}>
+          <button type="button" onClick={() => { setTeam("w") }} className={"inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900 border border-gray-200 rounded-s-lg " + (team === "w" ? "bg-green-700 text-white" : "hover:bg-gray-100 hover:text-green-700 focus:z-10 focus:ring-2 focus:ring-green-700 focus:text-green-700 ")}>
+            <PieceIcon piece={new ChessPiece("KING", "w", "a1")} className="flex justify-center max-w-8"></PieceIcon>
             White
           </button>
-          <button type="button" onClick={()=>{setTeam("b")}} className={"px-4 py-2 text-sm font-medium text-gray-900 border border-gray-200 rounded-e-lg " + (team === "b" ? "bg-green-500 text-white" : "hover:bg-gray-100 hover:text-green-700 focus:z-10 focus:ring-2 focus:ring-green-700 focus:text-green-700 ")}>
+          <button type="button" onClick={() => { setTeam("b") }} className={"inline-flex items-center px-4 py-2 text-sm font-medium text-gray-900 border border-gray-200 rounded-e-lg " + (team === "b" ? "bg-green-700 text-white" : "hover:bg-gray-100 hover:text-green-700 focus:z-10 focus:ring-2 focus:ring-green-700 focus:text-green-700 ")}>
+            <PieceIcon piece={new ChessPiece("KING", "b", "a1")} className="flex justify-center max-w-8"></PieceIcon>
+            Black
+          </button>
+        </div>
+
+        <button onClick={startGame} className="p-1 px-4 bg-green-800 rounded-lg text-white">Play</button>
+
+      </div>
+    </div>
+  )
+
+  return (
+    <div className="flex flex-col gap-2 justify-center items-center w-screen h-screen">
+      <div className="flex flex-col gap-2 border rounded-lg p-6 px-12 border-gray-500 justify-center items-center">
+        <h1 className="text-2xl">Chess-MI</h1>
+        <hr />
+        <p>Play chess with a computer</p>
+
+
+        <div className="inline-flex rounded-md shadow-sm" role="group">
+          <button type="button" onClick={() => { setTeam("w") }} className={"px-4 py-2 text-sm font-medium text-gray-900 border border-gray-200 rounded-s-lg " + (team === "w" ? "bg-green-500 text-white" : "hover:bg-gray-100 hover:text-green-700 focus:z-10 focus:ring-2 focus:ring-green-700 focus:text-green-700 ")}>
+            White
+          </button>
+          <button type="button" onClick={() => { setTeam("b") }} className={"px-4 py-2 text-sm font-medium text-gray-900 border border-gray-200 rounded-e-lg " + (team === "b" ? "bg-green-500 text-white" : "hover:bg-gray-100 hover:text-green-700 focus:z-10 focus:ring-2 focus:ring-green-700 focus:text-green-700 ")}>
             Black
           </button>
         </div>

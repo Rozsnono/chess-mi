@@ -139,9 +139,10 @@ export default function Home() {
     if (end) return;
     if (selectedStart == null || square == undefined) return;
     if (selectedStart == square) return;
-    if (move == undefined) { startSelection(board.getPieceByLabel(square), true); return; };
+    if (move == undefined) { return; }; 
     if (move.promotion) { setPromote({ square: square, color: board.getPieceByLabel(selectedStart)?.color }); return; }
-    if (board.getPieceByLabel(square) != null && board.getPieceByLabel(square)?.color == board.getPieceByLabel(selectedStart)?.color) { startSelection(board.getPieceByLabel(square), true); return; };
+    // if (board.getPieceByLabel(square) != null && board.getPieceByLabel(square)?.color == board.getPieceByLabel(selectedStart)?.color) { startSelection(board.getPieceByLabel(square), true); return; };
+    if(board.getPieceByLabel(selectedStart)?.color != board.turn) return;
     const res = board.move(selectedStart, square);
     if (res) {
       setCheck(undefined);

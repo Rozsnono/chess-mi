@@ -20,7 +20,7 @@ export default function ChessBoardWhite({ board, reload, selectedStart, availabl
                             board.chess_board[indexY].map((x, indexX) =>
                                 <div className={"2xl:w-24 2xl:h-24 xl:w-16 xl:h-16 lg:w-16 lg:h-16 md:w-12 md:h-12 sm:w-8 sm:h-8 relative chessPlate" + ((indexY + indexX) % 2 == 0 ? "-dark" : "")}
                                     key={board.boardLabels[1][indexX] + board.boardLabels[0][indexY]}
-                                    onMouseDown={() => { startSelection(x) }}
+                                    onMouseDown={() => { startSelection(x); }}
                                     onMouseUp={() => { prepareMove(indexX, indexY) }}
                                     onDrop={() => { prepareMove(indexX, indexY) }} onDragOver={(e) => { e.preventDefault() }}>
                                     {
