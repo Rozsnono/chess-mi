@@ -24,10 +24,10 @@ export default function ChessBoardWhite({ board, reload, selectedStart, availabl
                                     onMouseUp={() => { prepareMove(indexX, indexY) }}
                                     onDrop={() => { prepareMove(indexX, indexY) }} onDragOver={(e) => { e.preventDefault() }}>
                                     {
-                                        (indexX == 0) && <div className={"absolute top-0 left-1 " + (board.team == "b" ? " rotate-180" : "")}>{board.boardLabels[1][indexY]}</div>
+                                        (indexX == 0) && <div className={"absolute top-0 left-1 "}>{board.boardLabels[1][indexY]}</div>
                                     }
                                     {
-                                        (indexY == 7) && <div className={"absolute bottom-0 right-1 " + (board.team == "b" ? " rotate-180" : "")}>{board.boardLabels[0][indexX].toUpperCase()}</div>
+                                        (indexY == 7) && <div className={"absolute bottom-0 right-1 "}>{board.boardLabels[0][indexX].toUpperCase()}</div>
                                     }
 
                                     {
@@ -35,7 +35,7 @@ export default function ChessBoardWhite({ board, reload, selectedStart, availabl
                                         <div className="absolute top-0 left-0 w-full h-full bg-blue-700 opacity-20"></div>
                                     }
 
-                                    <div className={"relative z-10 cursor-pointer cursor-grab" + (board.team == "b" ? " rotate-180" : "")} >
+                                    <div className={"relative z-10 cursor-pointer cursor-grab"} >
                                         <PieceIcon piece={board.chess_board[indexY][indexX]} />
                                     </div>
                                     {
